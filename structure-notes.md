@@ -22,12 +22,15 @@ Mark up a yaml document (or any scalar/array/object structure) with CSS classes,
 Syntax markers:
 
 | syntax | class name |
+| ------ | ---------- |
 | \| (plain text marker) | yaml-ptext-mrk |
 | - (array element marker) | yaml-arr-elt-mrk |
 | : (obj entry value marker) | yaml-obj-val-mrk |
 
 Control areas
 
+| control | class name |
+| ------- | ---------- |
 | yaml type insertion | yaml-type-sel |
 | object entry control area | yaml-obj-ent-control |
 | array element control area | yaml-arr-elt-control |
@@ -38,6 +41,7 @@ So let the classes impart a structure that is independent of the DOM elements th
 In general, use following DOM elements for the yaml classes
 
 | class name | possible DOM element |
+| ---------- | -------------------- |
 | yaml | div |
 | yaml-hdr | div, span |
 | yaml-ptext | div, span (containing the text), input |
