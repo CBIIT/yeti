@@ -1,0 +1,22 @@
+{
+  "name": "yedit",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "build": "browserify ./public/javascripts/actions.js > ./public/javascripts/bundle.js",
+    "start": "node ./bin/www",
+    "watch": "watchify ./public/javascripts/actions.js -o ./public/javascripts/bundle.js &",
+    "unwatch": "PID=$(ps | grep watchify | grep -v grep | { read i j ; echo $i ; }) ; [[ -n $PID ]] && kill $PID ; exit 0"
+  },
+  "dependencies": {
+    "cookie-parser": "~1.4.4",
+    "debug": "~2.6.9",
+    "express": "~4.16.1",
+    "http-errors": "~1.6.3",
+    "jquery": "^3.4.1",
+    "lodash": "^4.17.15",
+    "morgan": "~1.9.1",
+    "pug": "~2.0.4",
+    "yaml": "^1.6.0"
+  }
+}

@@ -1,0 +1,46 @@
+body {
+  padding: 50px;
+  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+a {
+  color: #00B7FF;
+}
+
+.yaml-arr-elt-control {
+    color: green;
+    cursor: pointer;
+}
+.yaml-obj-ent-control {
+    color: green;
+    cursor: pointer;
+}
+.yaml-status {
+    cursor: default;
+}
+.yaml-number {
+    display: inline;
+}
+.yaml-bool {
+    display: inline;
+}
+.yaml-arr-elt {
+}
+.yaml-obj-key {
+    color: darkred;
+}
+.yaml-obj-sc-val {
+    display: inline;
+}
+.yaml-obj-sc-val > .yaml-ptext {
+    color: blue;
+}
+.yaml-arr-elt > .yaml-ptext {
+    color: lightblue;
+}
+.yaml-arr {
+    color: green;
+}
+.yaml-obj {
+    color: darkred;
+}
