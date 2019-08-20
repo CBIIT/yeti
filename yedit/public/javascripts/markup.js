@@ -24,10 +24,10 @@ function markup_obj(obj) {
       doc = doc + tab + '<div class="yaml-arr yaml-entity" '+indent+' >\n'
       for (let elt of o) {
 	doc = doc + tab + tabch + '<div class="yaml-arr-elt">' + 
-	  '<span class="yaml-arr-elt-mrk">-</span>' +
-	  '<span class="yaml-status"></span> \n'
+	  '<span class="yaml-arr-elt-mrk">-</span>'
 	markup(elt,tab+tabch+tabch,ind+config.pxindent)
-	doc = doc + tab + tabch + '<span class="yaml-arr-elt-control"></span>' +
+	doc = doc + tab + tabch + '<span class="yaml-status">' +
+	  '</span><span class="yaml-arr-elt-control"></span>' +
 	  '</div>\n'
       }
       doc = doc + tab + '</div>\n'

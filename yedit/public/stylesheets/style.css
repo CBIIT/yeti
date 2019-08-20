@@ -29,6 +29,9 @@ a {
 .yaml-obj-key {
     color: darkred;
 }
+.yaml-obj-val {
+    display: inline;
+}
 .yaml-obj-sc-val {
     display: inline;
 }

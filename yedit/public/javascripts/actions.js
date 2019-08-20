@@ -44,18 +44,23 @@ function create_obj_ent (indent) {
 	      '<span class="yaml-obj-ent-control">+</span>' +
 	      '<input class="yaml-obj-key" value="">'+
 	      '<span class="yaml-obj-val-mrk">:</span>'+
+	      '<div class="yaml-obj-val"></div>'+
 	      '<span class="yaml-status></span>'+
 	      '</div>');
-  create_type_select(indent).insertAfter(elt.find('.yaml-obj-val-mrk'))
+  create_type_select(indent).appendTo(elt.find('.yaml-obj-val'))
   $(elt).find(".yaml-obj-key")
     .dblclick( hider )
-
+  $(elt).find(".yaml-obj-ent-control")
+    .click( (e) => {
+      e.stopPropagation
+      insert_obj_ent(e.target.closest(".yaml-obj-ent"))
+    })
   return elt
 }
 
 function create_arr_elt (indent) {
   let elt = $('<div class="yaml-arr-elt">' +
-	      '<span class="yaml-arr-elt-mrk">- </span>'+
+	      '<span class="yaml-arr-elt-mrk">-</span>'+
 	      '<span class="yaml-arr-elt-control"> +</span>' +
 	      '<span class="yaml-status"></span>'+
 	      '</div>');
@@ -78,7 +83,6 @@ function create_arr (indent) {
   let arr = $( '<div class="yaml-arr yaml-entity" style="padding-inline-start:'+indent+'px">'+
 	       '<span class="yaml-status"></span></div></div>' )
   create_arr_elt(indent).insertBefore(arr.find('.yaml-status'))
-  create_type_select(indent).insertAfter(arr.find('.yaml-arr-elt-mrk'))
   return arr
 }
 
