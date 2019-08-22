@@ -11,6 +11,7 @@ Mark up a yaml document (or any scalar/array/object structure) with CSS classes,
 | plain text | yaml-ptext |
 | number | yaml-number |
 | boolean | yaml-bool |
+| yaml scalar (ptext or number or bool) | yaml-scalar |
 | yaml entity (arr or obj) | yaml-entity |
 | array container | yaml-arr |
 | array element | yaml-arr-elt |
@@ -64,6 +65,27 @@ yaml
 - must encompass hdr and _either_ arr _or_ obj only
 yaml-hdr
 - unique
+
+So a general object might be structured by markup classes as follows
+
+    .yaml
+	  .yaml-hdr
+	  .yaml-arr .yaml-entity
+	    .yaml-arr-elt
+		  .yaml-scalar | .yaml-entity
+		.yaml-arr-elt
+		  .yaml-scalar | .yaml-entity
+	  .yaml-obj .yaml-entity
+	    .yaml-obj-ent
+		  .yaml-obj-key
+		    .yaml-ptext .yaml-scalar
+		  .yaml-obj-val
+		    .yaml-scalar | .yaml-entity
+        .yaml-obj-ent
+		  .yaml-obj-key
+		    .yaml-ptext .yaml-scalar
+		  .yaml-obj-val
+		    .yaml-scalar | .yaml-entity
 
 ## Layout
 ### Read and markup object

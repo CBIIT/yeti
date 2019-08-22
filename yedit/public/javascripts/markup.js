@@ -56,13 +56,13 @@ function markup_obj(obj) {
     }
     else {
       if (typeof(o) == 'string') {
-	doc = doc + '<input class="yaml-ptext" value="'+o+'">\n'
+	doc = doc + '<input class="yaml-ptext yaml-scalar" value="'+o+'">\n'
       }
       else if (typeof(o) == 'number') {
-	doc = doc + '<input class="yaml-number" value=">'+o+'">\n'
+	doc = doc + '<input class="yaml-number yaml-scalar" value=">'+o+'">\n'
       }
       else if (typeof(o) == 'boolean') {
-	doc = doc + '<input class="yaml-bool" value=">'+o+'">\n'
+	doc = doc + '<input class="yaml-bool yaml-scalar" value=">'+o+'">\n'
       }
       else {
 	console.error( "Hey, I don't understand type '"+typeof(o)+"'" )

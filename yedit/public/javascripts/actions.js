@@ -2,7 +2,7 @@ const $ = require('jquery')
 const _ = require('lodash')
 const indent_inc=0
 
-$( function () {
+$(function () {
   // collapse/expand value, dbl-click key
   $(".yaml-obj-key")
     .dblclick( hider )
@@ -18,6 +18,7 @@ $( function () {
       e.stopPropagation
       insert_arr_elt(e.target)
     })
+  console.log(parse_dom())
 })
 
 function insert_obj_ent (tgt) {
@@ -126,4 +127,40 @@ function hider (e) {
 	$(stat).text("")
       }
     })
+}
+
+function parse_dom() {
+  return visit($(document).find('.yaml'))
+  function visit($jq) {
+    if ($jq.hasClass('yaml')) {
+      return visit($($jq.get(0).querySelector('.yaml-entity')))
+    }
+    else if ($jq.hasClass('yaml-obj')) {
+      let o = {}
+      for (let ent of $jq.children('.yaml-obj-ent')) {
+	let key = ent.querySelector('.yaml-obj-key').value;
+	let val = ent.querySelector('.yaml-obj-val')
+	o[key] = visit($(val.querySelector('.yaml-entity') ||
+			 val.querySelector('.yaml-scalar')));
+      }
+      return o
+    }
+    else if ($jq.hasClass('yaml-arr')) {
+      let a = []
+      for (let elt of $jq.children('.yaml-arr-elt')) {
+	let val = elt.querySelector('.yaml-scalar')
+	a.push( visit( $(val) ) )
+      }
+      return a
+    }
+    else if ($jq.hasClass('yaml-ptext') ||
+	     $jq.hasClass('yaml-bool') ||
+	     $jq.hasClass('yaml-number')) {
+      return $jq.get(0).value;
+    }
+    else {
+      1 //ignore
+    }
+
+  }
 }
