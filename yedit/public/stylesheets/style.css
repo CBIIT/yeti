@@ -15,6 +15,9 @@ a {
     color: green;
     cursor: pointer;
 }
+.yaml-obj-ent-control > .red {
+    color: red;
+}
 .yaml-status {
     cursor: default;
 }
@@ -39,7 +42,7 @@ a {
     color: blue;
 }
 .yaml-arr-elt > .yaml-ptext {
-    color: lightblue;
+    color: salmon;
 }
 .yaml-arr {
     color: green;
