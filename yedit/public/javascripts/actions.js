@@ -2,6 +2,11 @@ const $ = require('jquery')
 const _ = require('lodash')
 const indent_inc=0
 
+// need undo
+// delete the last arr-elt or obj-ent, need to present the entity selector
+// need to delete scalar value and replace with entity selector
+// fix padding-inline-start stuff
+
 $(function () {
   // collapse/expand value, dbl-click key
   $(".yaml-obj-key")
@@ -19,7 +24,6 @@ function insert_obj_ent (tgt) {
     console.error("Couldn't find an indent padding (insert_obj_ent)")
   }
   create_obj_ent(ind).insertBefore($(tgt))
-//  tgt.insertAdjacentElement('beforebegin',elt[0])
 }
 
 function insert_arr_elt (tgt) {
@@ -120,7 +124,10 @@ function edit_control_setup () {
     .text("•")
     .hover(
       function (e) {
-	$(this).text("⊕")
+        if (e.metaKey)
+	  $(this).attr('style','color:red').text("⊗")
+        else
+	  $(this).text("⊕")          
 	let $elt = $(this)
 	$(document).on(
 	  "keydown.yaml",
@@ -150,8 +157,27 @@ function edit_control_setup () {
 	  break
 	}
       else if ($(e.target).text() == "⊗")
-	$(e.target).closest('.'+cls).remove()
+	$(e.target).closest('.'+cls).each(delete_entity)
     })
+}
+
+function delete_entity() {
+  let cls = $(this).hasClass('yaml-obj-ent') ?
+      'yaml-obj-ent' :
+      ( $(this).hasClass('yaml-arr-elt') ?
+        'yaml-arr-elt' :
+        null )
+  if (!cls)
+    return
+  let $parent = $(this).closest('.yaml-entity')
+  let $sib = $(this).next('.'+cls)
+  if ($parent.children('.'+cls).length == 1) {
+    let ind = $parent.css('padding-inline-start')
+    $parent.replaceWith( create_type_select(ind) )
+  }
+  else {
+    $(this).remove()
+  }
 }
 
 function parse_dom() {

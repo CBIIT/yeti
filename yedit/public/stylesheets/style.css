@@ -10,10 +10,18 @@ a {
 .yaml-arr-elt-control {
     color: green;
     cursor: pointer;
+    padding-left: 3px;
 }
 .yaml-obj-ent-control {
     color: green;
     cursor: pointer;
+    padding-right: 3px;
+}
+.yaml-arr-elt-mrk {
+    padding-right: 3px;
+}
+.yaml-obj-val-mrk {
+    padding-left: 2px;
 }
 .yaml-obj-ent-control > .red {
     color: red;
