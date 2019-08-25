@@ -1,6 +1,6 @@
 const $ = require('jquery')
 const _ = require('lodash')
-const indent_inc=0
+const indent=12
 const undo_max=10
 
 // need undo
@@ -33,32 +33,28 @@ $(function () {
 })
 
 function insert_obj_ent (tgt) {
-  let ind = $(tgt.closest('.yaml-obj')).css('padding-inline-start')
-  ind = Number(ind.match(/^([0-9]+)px/)[1])
-  if (!ind) {
-    console.error("Couldn't find an indent padding (insert_obj_ent)")
-  }
-  let undo_mark = "undo-"+_.toString(_.random(1,1000))
-  create_obj_ent(ind)
-    .insertBefore($(tgt))
-    .attr('_undo_mark',undo_mark)
-  undo_stack.push( { mark:undo_mark, action:'remove' } )
+  // let ind = $(tgt.closest('.yaml-obj')).css('padding-inline-start')
+  // ind = Number(ind.match(/^([0-9]+)px/)[1])
+  // if (!ind) {
+  //   console.error("Couldn't find an indent padding (insert_obj_ent)")
+  // }
+  let ent = create_obj_ent(indent)
+      .insertBefore($(tgt)).first()
+  push_to_undo('creation', ent)
 }
 
 function insert_arr_elt (tgt) {
-  let ind = $(tgt.closest('.yaml-arr')).css('padding-inline-start')
-  ind = Number(ind.match(/^([0-9]+)px/)[1])
-  if (!ind) {
-    console.error("Couldn't find an indent padding (insert_obj_ent)")
-  }
-  let undo_mark = "undo-"+_.toString(_.random(1,1000))
-  create_arr_elt(ind)
-    .insertAfter($(tgt))
-    .attr('_undo_mark',undo_mark)
-  undo_stack.push( { mark:undo_mark, action:'remove' } )  
+  // let ind = $(tgt.closest('.yaml-arr')).css('padding-inline-start')
+  // ind = Number(ind.match(/^([0-9]+)px/)[1])
+  // if (!ind) {
+  //   console.error("Couldn't find an indent padding (insert_obj_ent)")
+  // }
+  let ent = create_arr_elt(indent)
+      .insertAfter($(tgt)).first()
+  push_to_undo('creation', ent)
 }
 
-function create_obj_ent (indent) {
+function create_obj_ent (ind) {
   let elt = $('<div class="yaml-obj-ent">' +
 	      '<span class="yaml-obj-ent-control">+</span>' +
 	      '<input class="yaml-obj-key" value="">'+
@@ -66,34 +62,37 @@ function create_obj_ent (indent) {
 	      '<div class="yaml-obj-val"></div>'+
 	      '<span class="yaml-status></span>'+
 	      '</div>');
-  create_type_select(indent).appendTo(elt.find('.yaml-obj-val'))
+  create_type_select(ind).appendTo(elt.find('.yaml-obj-val'))
   $(elt).find(".yaml-obj-key")
     .dblclick( hider )
   $(elt).find(".yaml-obj-ent-control").each( edit_control_setup )
   return elt
 }
 
-function create_arr_elt (indent) {
+function create_arr_elt (ind) {
   let elt = $('<div class="yaml-arr-elt">' +
 	      '<span class="yaml-arr-elt-mrk">-</span>'+
 	      '<span class="yaml-arr-elt-control"></span>' +
 	      '<span class="yaml-status"></span>'+
 	      '</div>');
-  create_type_select(indent).insertAfter(elt.find('.yaml-arr-elt-mrk'))
+  create_type_select(ind).insertAfter(elt.find('.yaml-arr-elt-mrk'))
   $(elt).find(".yaml-arr-elt-control").each( edit_control_setup )
   return elt
 }
-function create_obj (indent) {
-  let obj = $( '<div class="yaml-obj yaml-entity" style="padding-inline-start:'+indent+'px">'+
+
+function create_obj (ind) {
+  let obj = $( '<div class="yaml-obj yaml-entity" style="padding-inline-start:'+ind+'px">'+
 	       '<span class="yaml-status"></span></div></div>' )
-  create_obj_ent(indent).insertBefore(obj.find('.yaml-status'))
+  create_obj_ent(ind).insertBefore(obj.find('.yaml-status'))
+  push_to_undo('creation', obj)
   return obj
 }
 
-function create_arr (indent) {
-  let arr = $( '<div class="yaml-arr yaml-entity" style="padding-inline-start:'+indent+'px">'+
+function create_arr (ind) {
+  let arr = $( '<div class="yaml-arr yaml-entity" style="padding-inline-start:'+ind+'px">'+
 	       '<span class="yaml-status"></span></div></div>' )
-  create_arr_elt(indent).insertBefore(arr.find('.yaml-status'))
+  create_arr_elt(ind).insertBefore(arr.find('.yaml-status'))
+  push_to_undo('creation', arr)
   return arr
 }
 
@@ -104,23 +103,41 @@ function create_type_select(indent) {
 	      '        <option value="object">object</option>'+
 	      '</select>');
   sel.change(function () {
-    let undo_mark = $(this).attr('_undo_mark')
+    let marker = push_to_undo('deletion', $(this))
+    let ent;
     switch (this.value) {
     case 'scalar':
-      $(this).replaceWith($('<input class="yaml-ptext" value="">'))
+      ent = $('<input class="yaml-ptext" value="">')
+      push_to_undo('creation',ent)
       break
     case 'array':
-      $(this).replaceWith(create_arr(indent))
+      ent = create_arr(indent)
       break
     case 'object':
-      $(this).replaceWith(create_obj(indent))
+      ent = create_obj(indent)
       break
     default:
       console.error("Type selection '"+this.value+"' is unknown");
     }
-  }) 
+    $(this).detach()
+    switch (marker.action) {
+    case 'before':
+      ent.insertBefore(marker.marked)
+      break
+    case 'after':
+      ent.insertAfter(marker.marked)
+      break
+    case 'append':
+      ent.appendTo(marker.marked)      
+      break
+    default:
+      console.error("sel.change(): Marked action '"+marker.action+"' unknown")
+    }
+  })
   return sel
 }
+
+
 
 function hider (e) {
   e.stopPropagation()
@@ -194,39 +211,29 @@ function delete_entity() {
   if (!cls)
     return
   let $parent = $(this).closest('.yaml-entity')
-  let $sib = $(this).next('.'+cls)
-  let undo_mark_old = "undo-"+_.toString(_.random(1,1000))
-  let undo_mark_new = "undo-"+_.toString(_.random(1,1000))
   
   if ($parent.children('.'+cls).length == 1) {
-    let ind = $parent.css('padding-inline-start')
-    if ($parent.next()) {
-      $parent.next().attr('_undo_mark',undo_mark_old)
-      undo_stack.push( { mark:undo_mark_old, action:'before',elt:$parent })
+//    let ind = $parent.css('padding-inline-start')
+    let marker = push_to_undo('deletion',$parent)
+    $parent.detach()
+    let sel = create_type_select(indent)
+    switch (marker.action) {
+    case 'before':
+      sel.insertBefore(marker.marked)
+      break
+    case 'after':
+      sel.insertAfter(marker.marked)
+      break
+    case 'append':
+      sel.appendTo(marker.marked)      
+      break
+    default:
+      console.error("Marked action '"+marker.action+"' unknown")
     }
-    else if ($parent.prev()) {
-      $parent.prev().attr('_undo_mark',undo_mark_old)
-      undo_stack.push( { mark:undo_mark_old, action:'after',elt:$parent })
-    }
-    else if ($parent.parent().first()) {
-      $parent.parent().first().attr('_undo_mark',undo_mark_old)
-      undo_stack.push( { mark:undo_mark_old, action:'append',elt:$parent })
-    }
-    $parent.replaceWith( create_type_select(ind).attr('_undo_mark',undo_mark_new) )
+    push_to_undo('creation', sel)
   }
   else {
-    if ($(this).next()) {
-      $(this).next().attr('_undo_mark',undo_mark_old)
-      undo_stack.push( { mark:undo_mark_old, action:'before',elt:$(this) })
-    }
-    else if ($(this).prev()) {
-      $(this).prev().attr('_undo_mark',undo_mark_old)
-      undo_stack.push( { mark:undo_mark_old, action:'after',elt:$(this) })
-    }
-    else if ($parent) {
-      $parent.attr('_undo_mark',undo_mark_old)
-      undo_stack.push( { mark:undo_mark_old, action:'append',elt:$(this) })
-    }
+    push_to_undo('deletion',$(this))
     $(this).detach()
   }
 }
@@ -235,30 +242,61 @@ function undo() {
   if (_.isEmpty(undo_stack))
     return
   let a = undo_stack.pop()
-  let anch = $(".yaml").find("[_undo_mark='"+a.mark+"']").first();
-  if (!anch) {
+  let marked_elt = $(".yaml").find("[_undo_mark='"+a.mark+"']").first();
+  if (!marked_elt) {
     undo_stack=[]
     return
   }
-  anch.removeAttr('_undo_mark')
+  marked_elt.removeAttr('_undo_mark')
   if (a.elt) a.elt.removeAttr('_undo_mark')
   switch (a.action) {
   case 'before':
-    a.elt.insertBefore(anch)
+    a.elt.insertBefore(marked_elt)
     break
   case 'after':
-    a.elt.insertAfter(anch)
+    a.elt.insertAfter(marked_elt)
     break
   case 'append':
-    a.elt.appendTo(anch)
+    a.elt.appendTo(marked_elt)
     break
   case 'remove':
-    anch.remove()
+    marked_elt.remove()
     break
   default:
-    console.err("Undo: I don't understand action '"+a.action+"'")
+    console.error("undo: action '"+a.action+"' unknown")
   }
-  return
+  return true
+}
+
+function push_to_undo(action, elt) {
+  let undo_mark = "undo-"+_.toString(_.random(1,1000))
+  let marked_elt;
+  let marked_action;
+  switch (action) {
+  case 'deletion':
+    if (elt.next()) {
+      marked_elt = elt.next().attr('_undo_mark',undo_mark).first()
+      marked_action = 'before'
+    }
+    else if (elt.prev()) {
+      marked_elt=elt.prev().attr('_undo_mark',undo_mark).first()
+      marked_action = 'after'
+    }
+    else if (elt.parent()) {
+      marked_elt=elt.parent().attr('_undo_mark',undo_mark).first()
+      marked_action = 'append'
+    }
+    break
+  case 'creation':
+    elt.attr('_undo_mark',undo_mark)
+    marked_elt=elt
+    marked_action='remove'
+    break
+  default:
+    console.error('push_to_undo: Action "'+action+'" unknown')
+  }
+  undo_stack.push( { mark:undo_mark, action:marked_action,elt:elt })
+  return { marked:marked_elt, action:marked_action }
 }
 
 function parse_dom() {
