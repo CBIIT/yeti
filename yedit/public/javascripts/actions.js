@@ -1,8 +1,15 @@
 const $ = require('jquery')
 const _ = require('lodash')
 const indent_inc=0
+const undo_max=10
 
 // need undo
+undo_stack = []
+// elts-
+//  { mark:"undo-marker-val",
+//   action: before|after|append|remove
+//   elt: <dom object> }
+
 // delete the last arr-elt or obj-ent, need to present the entity selector
 // need to delete scalar value and replace with entity selector
 // fix padding-inline-start stuff
@@ -15,6 +22,14 @@ $(function () {
     .each( edit_control_setup )
   $(".yaml-arr-elt-control")
     .each( edit_control_setup )
+  $(document).on("keydown", function (e) {
+    if (e.key == 'z' && (e.metaKey || e.ctrlKey)) {
+      if (!$( document.activeElement ).is("input")) {
+        undo()
+      }
+      // else in input elt, regular undo
+    }
+  })
 })
 
 function insert_obj_ent (tgt) {
@@ -23,7 +38,11 @@ function insert_obj_ent (tgt) {
   if (!ind) {
     console.error("Couldn't find an indent padding (insert_obj_ent)")
   }
-  create_obj_ent(ind).insertBefore($(tgt))
+  let undo_mark = "undo-"+_.toString(_.random(1,1000))
+  create_obj_ent(ind)
+    .insertBefore($(tgt))
+    .attr('_undo_mark',undo_mark)
+  undo_stack.push( { mark:undo_mark, action:'remove' } )
 }
 
 function insert_arr_elt (tgt) {
@@ -32,7 +51,11 @@ function insert_arr_elt (tgt) {
   if (!ind) {
     console.error("Couldn't find an indent padding (insert_obj_ent)")
   }
-  create_arr_elt(ind).insertAfter($(tgt))
+  let undo_mark = "undo-"+_.toString(_.random(1,1000))
+  create_arr_elt(ind)
+    .insertAfter($(tgt))
+    .attr('_undo_mark',undo_mark)
+  undo_stack.push( { mark:undo_mark, action:'remove' } )  
 }
 
 function create_obj_ent (indent) {
@@ -81,7 +104,8 @@ function create_type_select(indent) {
 	      '        <option value="object">object</option>'+
 	      '</select>');
   sel.change(function () {
-    switch (sel[0].value) {
+    let undo_mark = $(this).attr('_undo_mark')
+    switch (this.value) {
     case 'scalar':
       $(this).replaceWith($('<input class="yaml-ptext" value="">'))
       break
@@ -92,7 +116,7 @@ function create_type_select(indent) {
       $(this).replaceWith(create_obj(indent))
       break
     default:
-      console.error("Type selection '"+sel[0].value+"' is unknown");
+      console.error("Type selection '"+this.value+"' is unknown");
     }
   }) 
   return sel
@@ -127,7 +151,7 @@ function edit_control_setup () {
         if (e.metaKey)
 	  $(this).attr('style','color:red').text("⊗")
         else
-	  $(this).text("⊕")          
+          $(this).text("⊕")          
 	let $elt = $(this)
 	$(document).on(
 	  "keydown.yaml",
@@ -171,13 +195,70 @@ function delete_entity() {
     return
   let $parent = $(this).closest('.yaml-entity')
   let $sib = $(this).next('.'+cls)
+  let undo_mark_old = "undo-"+_.toString(_.random(1,1000))
+  let undo_mark_new = "undo-"+_.toString(_.random(1,1000))
+  
   if ($parent.children('.'+cls).length == 1) {
     let ind = $parent.css('padding-inline-start')
-    $parent.replaceWith( create_type_select(ind) )
+    if ($parent.next()) {
+      $parent.next().attr('_undo_mark',undo_mark_old)
+      undo_stack.push( { mark:undo_mark_old, action:'before',elt:$parent })
+    }
+    else if ($parent.prev()) {
+      $parent.prev().attr('_undo_mark',undo_mark_old)
+      undo_stack.push( { mark:undo_mark_old, action:'after',elt:$parent })
+    }
+    else if ($parent.parent().first()) {
+      $parent.parent().first().attr('_undo_mark',undo_mark_old)
+      undo_stack.push( { mark:undo_mark_old, action:'append',elt:$parent })
+    }
+    $parent.replaceWith( create_type_select(ind).attr('_undo_mark',undo_mark_new) )
   }
   else {
-    $(this).remove()
+    if ($(this).next()) {
+      $(this).next().attr('_undo_mark',undo_mark_old)
+      undo_stack.push( { mark:undo_mark_old, action:'before',elt:$(this) })
+    }
+    else if ($(this).prev()) {
+      $(this).prev().attr('_undo_mark',undo_mark_old)
+      undo_stack.push( { mark:undo_mark_old, action:'after',elt:$(this) })
+    }
+    else if ($parent) {
+      $parent.attr('_undo_mark',undo_mark_old)
+      undo_stack.push( { mark:undo_mark_old, action:'append',elt:$(this) })
+    }
+    $(this).detach()
   }
+}
+
+function undo() {
+  if (_.isEmpty(undo_stack))
+    return
+  let a = undo_stack.pop()
+  let anch = $(".yaml").find("[_undo_mark='"+a.mark+"']").first();
+  if (!anch) {
+    undo_stack=[]
+    return
+  }
+  anch.removeAttr('_undo_mark')
+  if (a.elt) a.elt.removeAttr('_undo_mark')
+  switch (a.action) {
+  case 'before':
+    a.elt.insertBefore(anch)
+    break
+  case 'after':
+    a.elt.insertAfter(anch)
+    break
+  case 'append':
+    a.elt.appendTo(anch)
+    break
+  case 'remove':
+    anch.remove()
+    break
+  default:
+    console.err("Undo: I don't understand action '"+a.action+"'")
+  }
+  return
 }
 
 function parse_dom() {
