@@ -1,1 +1,1 @@
-/Users/jensenma/Code/yedit/yedit/public/javascripts/markup.js
+../../../yedit/public/javascripts/markup.js
