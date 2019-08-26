@@ -54,46 +54,59 @@ function insert_arr_elt (tgt) {
   push_to_undo('creation', ent)
 }
 
+function create_obj (ind, scalar) {
+  let obj = $( '<div class="yaml-obj yaml-entity" style="padding-inline-start:'+ind+'px">'+
+	       '<span class="yaml-status"></span></div></div>' )
+  create_obj_ent(ind).insertBefore(obj.find('.yaml-status'))
+  return obj
+}
+
 function create_obj_ent (ind) {
   let elt = $('<div class="yaml-obj-ent">' +
 	      '<span class="yaml-obj-ent-control">+</span>' +
 	      '<input class="yaml-obj-key" value="">'+
 	      '<span class="yaml-obj-val-mrk">:</span>'+
-	      '<div class="yaml-obj-val"></div>'+
 	      '<span class="yaml-status></span>'+
 	      '</div>');
-  create_type_select(ind).appendTo(elt.find('.yaml-obj-val'))
+  create_obj_val(ind).insertAfter(elt.find('.yaml-obj-val-mrk'))
   $(elt).find(".yaml-obj-key")
     .dblclick( hider )
   $(elt).find(".yaml-obj-ent-control").each( edit_control_setup )
   return elt
 }
 
-function create_arr_elt (ind) {
-  let elt = $('<div class="yaml-arr-elt">' +
-	      '<span class="yaml-arr-elt-mrk">-</span>'+
-	      '<span class="yaml-arr-elt-control"></span>' +
-	      '<span class="yaml-status"></span>'+
-	      '</div>');
-  create_type_select(ind).insertAfter(elt.find('.yaml-arr-elt-mrk'))
-  $(elt).find(".yaml-arr-elt-control").each( edit_control_setup )
+function create_obj_val (ind, val) {
+  let elt = $('<div class="yaml-obj-val"></div>')
+  if (val) {
+    val.appendTo(elt)
+  }
+  else {
+    create_type_select(ind).appendTo(elt)
+  }
   return elt
-}
-
-function create_obj (ind) {
-  let obj = $( '<div class="yaml-obj yaml-entity" style="padding-inline-start:'+ind+'px">'+
-	       '<span class="yaml-status"></span></div></div>' )
-  create_obj_ent(ind).insertBefore(obj.find('.yaml-status'))
-  push_to_undo('creation', obj)
-  return obj
 }
 
 function create_arr (ind) {
   let arr = $( '<div class="yaml-arr yaml-entity" style="padding-inline-start:'+ind+'px">'+
 	       '<span class="yaml-status"></span></div></div>' )
   create_arr_elt(ind).insertBefore(arr.find('.yaml-status'))
-  push_to_undo('creation', arr)
   return arr
+}
+
+function create_arr_elt (ind, val) {
+  let elt = $('<div class="yaml-arr-elt">' +
+	      '<span class="yaml-arr-elt-mrk">-</span>'+
+	      '<span class="yaml-arr-elt-control"></span>' +
+	      '<span class="yaml-status"></span>'+
+	      '</div>');
+  if (val) {
+    val.insertAfter(elt.find('.yaml-arr-elt-mrk'))    
+  }
+  else {
+    create_type_select(ind).insertAfter(elt.find('.yaml-arr-elt-mrk'))
+  }
+  $(elt).find(".yaml-arr-elt-control").each( edit_control_setup )
+  return elt
 }
 
 function create_type_select(indent) {
@@ -102,42 +115,61 @@ function create_type_select(indent) {
 	      '        <option value="array">array</option>' +
 	      '        <option value="object">object</option>'+
 	      '</select>');
-  sel.change(function () {
-    let marker = push_to_undo('deletion', $(this))
-    let ent;
-    switch (this.value) {
-    case 'scalar':
-      ent = $('<input class="yaml-ptext" value="">')
-      push_to_undo('creation',ent)
-      break
-    case 'array':
-      ent = create_arr(indent)
-      break
-    case 'object':
-      ent = create_obj(indent)
-      break
-    default:
-      console.error("Type selection '"+this.value+"' is unknown");
-    }
-    $(this).detach()
-    switch (marker.action) {
-    case 'before':
-      ent.insertBefore(marker.marked)
-      break
-    case 'after':
-      ent.insertAfter(marker.marked)
-      break
-    case 'append':
-      ent.appendTo(marker.marked)      
-      break
-    default:
-      console.error("sel.change(): Marked action '"+marker.action+"' unknown")
-    }
+  sel.change( function (e) {
+    $(e.target).each(replace_select)
   })
   return sel
 }
 
+function replace_select () {
+  let value = this.value;
+  let container = $(this).parent().first()
+  let new_elt=null
 
+  if (container.hasClass('yaml-obj-val')) {
+    switch (value) {
+    case 'scalar':
+      new_elt=create_obj_val(indent, $('<input class="yaml-ptext yaml-scalar" value="">'))
+      break
+    case 'array':
+      new_elt=create_obj_val(indent, create_arr(indent))
+      break
+    case 'object':
+      new_elt=create_obj_val(indent, create_obj(indent))
+      break
+    }
+  }
+  else if (container.hasClass('yaml-arr-elt')) {
+    switch (value) {
+    case 'scalar':
+      new_elt=create_arr_elt(indent, $('<input class="yaml-ptext yaml-scalar" value="">'))
+      break
+    case 'array':
+      new_elt=create_arr_elt(indent, create_arr(indent))
+      break
+    case 'object':
+      new_elt=create_arr_elt(indent, create_obj(indent))
+      break
+    }
+  }
+  let marker = push_to_undo('deletion',container);
+  container.detach()
+  switch (marker.action) {
+  case 'before':
+    new_elt.insertBefore(marker.marked)
+    break
+  case 'after':
+    new_elt.insertAfter(marker.marked)
+    break
+  case 'append':
+    new_elt.appendTo(marker.marked)
+    break
+  default:
+    1
+  }
+  push_to_undo('creation',new_elt)
+  return true
+}
 
 function hider (e) {
   e.stopPropagation()
@@ -274,17 +306,20 @@ function push_to_undo(action, elt) {
   let marked_action;
   switch (action) {
   case 'deletion':
-    if (elt.next()) {
+    if (elt.next().length > 0) {
       marked_elt = elt.next().attr('_undo_mark',undo_mark).first()
       marked_action = 'before'
     }
-    else if (elt.prev()) {
+    else if (elt.prev().length > 0) {
       marked_elt=elt.prev().attr('_undo_mark',undo_mark).first()
       marked_action = 'after'
     }
-    else if (elt.parent()) {
+    else if (elt.parent().length > 0) {
       marked_elt=elt.parent().attr('_undo_mark',undo_mark).first()
       marked_action = 'append'
+    }
+    else {
+      console.error("Can't find an element to mark")
     }
     break
   case 'creation':
