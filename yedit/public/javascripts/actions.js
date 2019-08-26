@@ -40,6 +40,7 @@ function insert_obj_ent (tgt) {
   // }
   let ent = create_obj_ent(indent)
       .insertBefore($(tgt)).first()
+  ent.find('input').trigger('focus')
   push_to_undo('creation', ent)
 }
 
@@ -49,8 +50,9 @@ function insert_arr_elt (tgt) {
   // if (!ind) {
   //   console.error("Couldn't find an indent padding (insert_obj_ent)")
   // }
+  console.log(tgt)
   let ent = create_arr_elt(indent)
-      .insertAfter($(tgt)).first()
+  ent.insertAfter($(tgt))
   push_to_undo('creation', ent)
 }
 
@@ -167,6 +169,9 @@ function replace_select () {
   default:
     1
   }
+  if (value == 'scalar') {
+    new_elt.find('input').trigger('focus')
+  }
   push_to_undo('creation',new_elt)
   return true
 }
@@ -217,8 +222,8 @@ function edit_control_setup () {
 	$(document).off("keydown.yaml").off("keyup.yaml")
       } )
     .click( (e) => {
-      e.stopPropagation
-      if ($(e.target).text() == "⊕")
+      e.preventDefault()
+      if ($(e.target).text() == "⊕") {
 	switch (cls) {
 	case 'yaml-obj-ent':
 	  insert_obj_ent(e.target.closest('.'+cls))
@@ -229,8 +234,11 @@ function edit_control_setup () {
 	default:
 	  break
 	}
-      else if ($(e.target).text() == "⊗")
+      }
+      else if ($(e.target).text() == "⊗") {
+        $(e.target).trigger('mouseout')
 	$(e.target).closest('.'+cls).each(delete_entity)
+      }
     })
 }
 
