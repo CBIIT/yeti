@@ -1,5 +1,11 @@
 const $ = require('jquery')
 const _ = require('lodash')
+
+const YAML = require('yaml')
+
+// var inf = fs.readFileSync('../icdc-model.yml','utf8')
+// var obj = YAML.parse(inf)
+
 const indent=12
 const undo_max=10
 
@@ -13,6 +19,10 @@ undo_stack = []
 // delete the last arr-elt or obj-ent, need to present the entity selector
 // need to delete scalar value and replace with entity selector
 // fix padding-inline-start stuff
+
+// need sort by key capability at each level
+
+// how to preserve comments?
 
 $(function () {
   // collapse/expand value, dbl-click key
@@ -67,7 +77,7 @@ function create_obj_ent (ind) {
   let elt = $('<div class="yaml-obj-ent">' +
 	      '<span class="yaml-obj-ent-control">+</span>' +
 	      '<input class="yaml-obj-key" value="">'+
-	      '<span class="yaml-obj-val-mrk">:</span>'+
+	      '<span class="yaml-obj-val-mrk">: </span>'+
 	      '<span class="yaml-status></span>'+
 	      '</div>');
   create_obj_val(ind).insertAfter(elt.find('.yaml-obj-val-mrk'))
@@ -97,7 +107,7 @@ function create_arr (ind) {
 
 function create_arr_elt (ind, val) {
   let elt = $('<div class="yaml-arr-elt">' +
-	      '<span class="yaml-arr-elt-mrk">-</span>'+
+	      '<span class="yaml-arr-elt-mrk">- </span>'+
 	      '<span class="yaml-arr-elt-control"></span>' +
 	      '<span class="yaml-status"></span>'+
 	      '</div>');
@@ -187,6 +197,7 @@ function hider (e) {
       console.log($(this).css("display"),"< disp val")
       if ($(this).css("display") == 'none') {
 	$(stat).text(" ...") // stuff hidden here
+          .dblclick(hider)
       }
       else {
 	$(stat).text("")
@@ -375,5 +386,73 @@ function parse_dom() {
       1 //ignore
     }
 
+  }
+}
+
+
+// markup input object for display
+function markup_obj(obj) {
+  let config = {
+    tabch: " ",
+    pxindent: indent
+  }
+  let doc = '<div class="yaml">\n'
+  let tabch = config.tabch
+  markup(obj,"",0)
+  doc = doc + '</div>'
+  return doc
+  function markup(o,tab,ind) {
+    let indent="";
+    if (ind > 0) {
+      indent='style="padding-inline-start:'+ind+'px"'
+    }
+    if ( Array.isArray(o) ) {
+      doc = doc + tab + '<div class="yaml-arr yaml-entity" '+indent+' >\n'
+      for (let elt of o) {
+	doc = doc + tab + tabch + '<div class="yaml-arr-elt">' + 
+	  '<span class="yaml-arr-elt-mrk">-</span>'
+	markup(elt,tab+tabch+tabch,ind+config.pxindent)
+	doc = doc + tab + tabch + '<span class="yaml-status">' +
+	  '</span><span class="yaml-arr-elt-control"></span>' +
+	  '</div>\n'
+      }
+      doc = doc + tab + '</div>\n'
+    }
+    //else if (o instanceof Object) {
+    else if (typeof(o) == 'object') {
+      doc = doc + tab + '<div class="yaml-obj yaml-entity" '+indent+' >\n'
+      for (let key in o) {
+	let cls='class="yaml-obj-val"'
+	let str=typeof o[key]
+	if (str.match(/^[a-z]/)) { //is a scalar
+	  cls='class="yaml-obj-val yaml-obj-sc-val"'
+	}
+	doc = doc + tab + tabch + '<div class="yaml-obj-ent">\n'
+	doc = doc + tab + tabch +
+	  '<span class="yaml-obj-ent-control"></span>'+
+	  '<input class="yaml-obj-key" value="'+key+'">'+
+	  '<span class="yaml-obj-val-mrk">:</span>'+
+	  '<span class="yaml-status"></span>' +
+	  '<div '+cls+' >\n'
+	markup(o[key],tab + tabch + tabch,ind+config.pxindent)
+	doc = doc + tab + tabch + "</div>\n"
+	doc = doc + tab + tabch + "</div>\n"
+      }
+      doc = doc + tab + "</div>\n"    
+    }
+    else {
+      if (typeof(o) == 'string') {
+	doc = doc + '<input class="yaml-ptext yaml-scalar" value="'+o+'">\n'
+      }
+      else if (typeof(o) == 'number') {
+	doc = doc + '<input class="yaml-number yaml-scalar" value=">'+o+'">\n'
+      }
+      else if (typeof(o) == 'boolean') {
+	doc = doc + '<input class="yaml-bool yaml-scalar" value=">'+o+'">\n'
+      }
+      else {
+	console.error( "Hey, I don't understand type '"+typeof(o)+"'" )
+      }
+    }
   }
 }
