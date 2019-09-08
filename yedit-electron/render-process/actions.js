@@ -1,9 +1,9 @@
 const $ = require('jquery')
 const _ = require('lodash')
+const {ipcRenderer} = require('electron')
 
-const YAML = require('yaml')
+const fs = require('fs')
 
-// var inf = fs.readFileSync('../icdc-model.yml','utf8')
 // var obj = YAML.parse(inf)
 
 const indent=12
@@ -23,9 +23,17 @@ undo_stack = []
 // need sort by key capability at each level
 
 // how to preserve comments?
-
+    
 $(function () {
-  // collapse/expand value, dbl-click key
+  ipcRenderer
+    .on('selected-yaml', function (event, yobj) {
+      $('#yaml-container')
+        .append(markup_obj(yobj))
+      yaml_doc_setup()
+    })
+})
+
+function yaml_doc_setup () {
   $(".yaml-obj-key")
     .dblclick( hider )
   $(".yaml-obj-ent-control")
@@ -40,7 +48,7 @@ $(function () {
       // else in input elt, regular undo
     }
   })
-})
+}
 
 function insert_obj_ent (tgt) {
   // let ind = $(tgt.closest('.yaml-obj')).css('padding-inline-start')

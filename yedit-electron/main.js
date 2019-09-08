@@ -3,15 +3,18 @@
 // })
 
 const path = require('path')
+const fs = require('fs')
+const YAML = require('yaml')
 const glob = require('glob')
 const setupPug = require('electron-pug')
 const locals = {}
 
-const assets = '/public'
+const assets = '/render-process'
 const templates = assets+'/templates'
 const stylesheets = assets+'/stylesheets'
 
-const {app, BrowserWindow} = require('electron')
+const {app, Menu, shell, dialog, BrowserWindow} = require('electron')
+
 
 const debug = /--debug/.test(process.argv[2])
 
@@ -55,10 +58,6 @@ function initialize () {
     })
   }
 
-  // app.on('ready', () => {
-
-  // })
-
   app.on('ready', async () => {
     try {
       let pug = await setupPug({}, locals)
@@ -72,6 +71,45 @@ function initialize () {
   app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
       app.quit()
+    }
+  })
+  
+  app.on('open-file-dialog', (event) => {
+    if (mainWindow === null) {
+      app.emit('activate')
+      app.emit('open-file-dialog')
+    }
+    else {
+      dialog.showOpenDialog({
+        properties: ['openFile']
+      }, (files) => {
+        if (files) {
+          let yobj=null
+          try {
+            let inf = fs.readFileSync(files[0],'utf8')
+            yobj = YAML.parse(inf, { prettyErrors: true })
+            console.info(`${files[0]} parse succeeded`)
+          }
+          catch (e) {
+            let ename = e.name
+            if (ename.match(/^YAML/)) {
+              dialog.showMessageBox(mainWindow, {
+                type:"error",
+                message:`${files[0]} has an ${ename}\nDetails: `+e.message
+              })
+              console.error(e.name, e.message)
+            }
+            else {
+              dialog.showMessageBox(mainWindow, {
+                type:"error",
+                message: `There's a problem: ${ename}\nDetails: `+e.prototype.message
+              })
+            }
+            return
+          }
+          mainWindow.webContents.send('selected-yaml', yobj)
+        }
+      })
     }
   })
 
