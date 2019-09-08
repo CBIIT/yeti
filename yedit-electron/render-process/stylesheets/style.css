@@ -1,1 +1,60 @@
-/Users/jensenma/Code/yedit/yedit/public/stylesheets/style.css
+body {
+  padding: 50px;
+  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+a {
+  color: #00B7FF;
+}
+
+.yaml-arr-elt-control {
+    color: green;
+    cursor: pointer;
+    padding-left: 3px;
+}
+.yaml-obj-ent-control {
+    color: green;
+    cursor: pointer;
+    padding-right: 3px;
+}
+.yaml-arr-elt-mrk {
+    padding-right: 3px;
+}
+.yaml-obj-val-mrk {
+    padding-left: 2px;
+}
+.yaml-obj-ent-control > .red {
+    color: red;
+}
+.yaml-status {
+    cursor: default;
+}
+.yaml-number {
+    display: inline;
+}
+.yaml-bool {
+    display: inline;
+}
+.yaml-arr-elt {
+}
+.yaml-obj-key {
+    color: darkred;
+}
+.yaml-obj-val {
+    display: inline;
+}
+.yaml-obj-sc-val {
+    display: inline;
+}
+.yaml-obj-sc-val > .yaml-ptext {
+    color: blue;
+}
+.yaml-arr-elt > .yaml-ptext {
+    color: salmon;
+}
+.yaml-arr {
+    color: green;
+}
+.yaml-obj {
+    color: darkred;
+}
