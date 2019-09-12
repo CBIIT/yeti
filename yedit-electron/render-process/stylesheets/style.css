@@ -1,6 +1,10 @@
 body {
   padding: 50px;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+  font: 18px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+body input {
+    font-size: 18px;
 }
 
 a {
@@ -58,3 +62,12 @@ a {
 .yaml-obj {
     color: darkred;
 }
+.yaml-comment-mrk {
+    color: blue;
+    font-style: italic;
+}
+.yaml-comment {
+    color: lightblue;
+    font-style: italic;
+}
+               

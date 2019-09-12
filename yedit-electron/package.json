@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "cookie-parser": "~1.4.4",
+    "d3": "^5.12.0",
     "debug": "~2.6.9",
     "electron": "^5.0.1",
     "electron-log": "^2.2.14",
@@ -25,6 +26,7 @@
     "glob": "^7.1.0",
     "highlight.js": "^9.3.0",
     "jquery": "^3.4.1",
+    "jsdom": "^15.1.1",
     "lodash": "^4.17.15",
     "pug": "~2.0.4",
     "update-electron-app": "^1.1.1",
