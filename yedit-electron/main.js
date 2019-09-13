@@ -89,6 +89,8 @@ function initialize () {
             let inf = fs.readFileSync(files[0],'utf8')
             ydoc = YAML.parseDocument(inf, { prettyErrors: true })
             console.info(`${files[0]} parse succeeded`)
+            add_ynode_ids(ydoc)
+            console.info(`${files[0]} ids added`)
           }
           catch (e) {
             let ename = e.name
@@ -100,6 +102,7 @@ function initialize () {
               console.error(e.name, e.message)
             }
             else {
+              console.error(e)
               dialog.showMessageBox(mainWindow, {
                 type:"error",
                 message: `There's a problem: ${ename}\nDetails: `+e.prototype.message
@@ -144,6 +147,31 @@ function makeSingleInstance () {
 function loadMainProc () {
   const files = glob.sync(path.join(__dirname, 'main-process/**/*.js'))
   files.forEach((file) => { require(file) })
+}
+
+function add_ynode_ids (ydoc) {
+  let i = 0;
+  let walk = function (n) {
+    n.id = `n${i}`
+    i = i+1;
+    switch (n.type) {
+    case 'PAIR':
+      console.log('pair')
+      walk(n.value)
+      break
+    case 'MAP':
+      console.log('map')
+      n.items.forEach( (d) => { walk(d) })
+    case 'SEQ':
+      console.log('seq')
+      n.items.forEach( (d) => { walk(d) })
+    default:
+      console.log('>>',n.type)
+      1;
+    }
+  }
+  walk(ydoc.contents)
+  return true
 }
 
 initialize()

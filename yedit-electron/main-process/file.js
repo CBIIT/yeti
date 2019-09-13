@@ -1,4 +1,7 @@
+
 const {app, BrowserWindow, ipcMain, ipcRenderer, dialog} = require ('electron')
+
+
 
 ipcMain.on('open-file-dialog', (event) => {
   dialog.showOpenDialog({
@@ -9,4 +12,3 @@ ipcMain.on('open-file-dialog', (event) => {
     }
   })
 })
-
