@@ -14,7 +14,12 @@
 # "category": "internal",
 # "category": "metadata_file",
 # "category": "notation",
-
+Booger:
+  - this
+  - is
+  - the
+  - booger
+  - array
 Nodes:
   program:
     Props:

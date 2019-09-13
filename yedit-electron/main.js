@@ -84,10 +84,10 @@ function initialize () {
         properties: ['openFile']
       }, (files) => {
         if (files) {
-          let yobj=null
+          let ydoc=null
           try {
             let inf = fs.readFileSync(files[0],'utf8')
-            yobj = YAML.parse(inf, { prettyErrors: true })
+            ydoc = YAML.parseDocument(inf, { prettyErrors: true })
             console.info(`${files[0]} parse succeeded`)
           }
           catch (e) {
@@ -107,7 +107,7 @@ function initialize () {
             }
             return
           }
-          mainWindow.webContents.send('selected-yaml', yobj)
+          mainWindow.webContents.send('selected-yaml', ydoc)
         }
       })
     }

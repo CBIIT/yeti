@@ -1,7 +1,5 @@
 const {BrowserWindow, Menu, app, shell, dialog} = require('electron')
-
 const os = require('os')
-const YAML = require('yaml')
 
 menu_template = null
 

@@ -1,6 +1,7 @@
 const $ = require('jquery')
 const _ = require('lodash')
-const d3data = require('./data.js')
+const path = require('path')
+const d3data = require('../data.js')
 const {ipcRenderer} = require('electron')
 
 
@@ -24,9 +25,10 @@ undo_stack = []
     
 $(function () {
   ipcRenderer
-    .on('selected-yaml', function (event, yobj) {
-      $('#yaml-container')
-        .append(markup_obj(yobj))
+    .on('selected-yaml', function (event, ydoc) {
+      //      $('#yaml-container')
+      //        .append(markup_obj(ydoc))
+      d3data.render_data(ydoc)
       yaml_doc_setup()
     })
 })

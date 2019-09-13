@@ -1,22 +1,44 @@
 const d3 = require('d3')
 const yaml = require('yaml')
 const ytypes = require('yaml/types')
+const _ = require('lodash')
+yh = {}
+
+function children (n) {
+  switch (n.type) {
+  case 'PAIR':
+    // console.log('pair')
+    return [n.value]
+    break
+  case 'MAP':
+    // console.log('map')
+    return n.items
+  case 'SEQ':
+    // console.log('seq')
+    return n.items
+  default:
+    // console.log('>>',n.type)
+    return null
+  }
+}
 
 // ydoc isa yaml.Document
 function render_data(ydoc) {
+  console.log("HEY")
   if ( ! ydoc instanceof yaml.Document ) {
     console.error( "create_data() - arg must be yaml.Document object")
     return
   }
-  let yh = d3.hierarchy( ydoc.contents, children )
+   yh = d3.hierarchy( ydoc.contents, children )
   let i = 0
-  yh.each( (n) => { n.value=i ; i=i+1 } ) // ids
+  yh.each( (n) => { n.value='n'+_.trim(_.toString(i)) ; i=i+1 } ) // ids
   yh.each( (n) => {
-    if (n.children == null)
+    if (n.children == null) 
       return
+
     d3.selectAll(`div[data-node-id="${n.value}"`) // has to be selectAll
       .selectAll("div")
-      .data(n.children)
+      .data(n.children, d => { d ? d.value : null } )
       .enter()
       .append("div")
       .attr("class", (d) => {
@@ -32,89 +54,68 @@ function render_data(ydoc) {
           cls = "yaml-obj yaml-entity"
           break
         case 'PLAIN':
-          cls = "yaml-scalar"
+          if (n.data.type=='SEQ')
+            cls = "yaml-arr-elt"
+          else
+            cls = "yaml-scalar"
           break
         default:
-          1
+          1;
         }
         return cls
       })  
-      .attr("data-node-id", d => d.value)
-      .text( d => d.data.type )
-      .each( (d) => {
+      .attr("data-node-id", d => { return d.data.type == 'PAIR' ? `${d.value}p` : d.value })
+      .each( function (d) {
         switch (d.data.type) {
         case 'PAIR':
+          let kid = _.trim(d.children[0].value);
           this.innerHTML =
 	    '<span class="yaml-obj-ent-control"></span>'+
-	    '<input class="yaml-obj-key" value="'+d.data.key.value+'">'+
+	    `<input class="yaml-obj-key" value="${d.data.key.value}">`+
 	    '<span class="yaml-obj-val-mrk">:</span>'+
-	    '<span class="yaml-status"></span>'+
-            '<div class="yaml-obj-val"></div>'
+	    '<span class="yaml-status"></span>'
+          let ov = document.createElement("div")
+          ov.setAttribute('class','yaml-obj-val')
+          ov.setAttribute('data-node-id',d.value)
+          this.append(ov)
           break
         case 'SEQ':
+          // let ae = document.createElement("div")
+          // ae.setAttribute('class','yaml-arr-elt')
+          // ae.setAttribute('data-node-id',d.value)
+          // this.append(ae)
           break
         case 'MAP':
+          // let ob = document.createElement("div")
+          // ob.setAttribute('class', 'yaml-obj-ent boog')
+          // ob.setAttribute('data-node-id',d.value)
+          // this.append(ob)
           break
         case 'PLAIN':
+          let scl;
           switch (n.data.type) {
           case 'SEQ':
             this.innerHTML =
-              '<div class="yaml-arr-elt>'+
               '<span class="yaml-arr-elt-mrk">-</span>'+
-              '<input class="yaml-ptext yaml-scalar" value="'+ d.data.value+'>'+
+              `<input class="yaml-ptext" value="${d.data.value}">`+
               '<span class="yaml-status"></span>'+
-              '<span class="yaml-arr-elt-control"></span>'+
-              '</div>'
+              '<span class="yaml-arr-elt-control"></span>'
             break
-          case 'MAP':
+          case 'PAIR':
             this.innerHTML =
-              '<div class="yaml-obj-val">'+
-              '<input class="yaml-ptext yaml-scalar" value="'+d.data.value+'>'+
-              '</div>'
+              `<input class="yaml-ptext" value="${d.data.value}">`
             break
           }
           break
         default:
-          1
+          console.error(`Can't handle PLAIN scalar at this position`)
         }
-        console.log(d.data.type)
+
         return
       })  
   })
 }
 
-export render_data as render_data
-
-
-
-
-function children (n) {
-  if (n instanceof ytypes.Pair) {
-    console.log('pair')
-    return [n.value]
-  }
-  else if (n instanceof ytypes.YAMLMap) {
-    console.log('map')
-    return n.items
-  }
-
-  else if (n instanceof ytypes.YAMLSeq) {
-    console.log('seq')
-    return n.items
-  }
-  else {
-    console.log('>>',n.type)
-    return null
-  }
-}
-
-function renderYAML (container, hier) {
-  let yroot = d3.select(container)
-      .append("div")
-      .classed("yaml",true)
-  yroot.selectAll(".yaml-obj")
-
-}
 
 
 // markup input object for display
@@ -184,5 +185,4 @@ function markup_obj(obj) {
   }
 }
 
-
-export create_data as create_data
+exports.render_data=render_data

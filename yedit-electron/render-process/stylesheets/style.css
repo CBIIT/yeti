@@ -11,6 +11,13 @@ a {
   color: #00B7FF;
 }
 
+.yaml-entity {
+    padding-inline-start: 12px;
+}
+.yaml-obj {
+    padding-inline-start: 12px;
+}
+
 .yaml-arr-elt-control {
     color: green;
     cursor: pointer;
