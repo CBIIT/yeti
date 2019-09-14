@@ -156,17 +156,15 @@ function add_ynode_ids (ydoc) {
     i = i+1;
     switch (n.type) {
     case 'PAIR':
-      console.log('pair')
       walk(n.value)
       break
     case 'MAP':
-      console.log('map')
       n.items.forEach( (d) => { walk(d) })
+      break
     case 'SEQ':
-      console.log('seq')
       n.items.forEach( (d) => { walk(d) })
+      break
     default:
-      console.log('>>',n.type)
       1;
     }
   }

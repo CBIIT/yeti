@@ -1,6 +1,7 @@
 const $ = require('jquery')
 const _ = require('lodash')
 const path = require('path')
+const d3 = require('d3')
 const d3data = require('../data.js')
 const {ipcRenderer} = require('electron')
 
@@ -22,13 +23,16 @@ undo_stack = []
 // need sort by key capability at each level
 
 // how to preserve comments?
-    
+
+var ydata = null;
+
 $(function () {
   ipcRenderer
     .on('selected-yaml', function (event, ydoc) {
       //      $('#yaml-container')
       //        .append(markup_obj(ydoc))
-      d3data.render_data(ydoc)
+      ydata = ydoc
+      d3data.render_data(ydata)
       yaml_doc_setup()
     })
 })
