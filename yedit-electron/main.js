@@ -84,13 +84,14 @@ function initialize () {
         properties: ['openFile']
       }, (files) => {
         if (files) {
-          let ydoc=null
+          // let ydoc=null
+          let inf=null
           try {
-            let inf = fs.readFileSync(files[0],'utf8')
-            ydoc = YAML.parseDocument(inf, { prettyErrors: true })
-            console.info(`${files[0]} parse succeeded`)
-            add_ynode_ids(ydoc)
-            console.info(`${files[0]} ids added`)
+            inf = fs.readFileSync(files[0],'utf8')
+            // ydoc = YAML.parseDocument(inf, { prettyErrors: true })
+            // console.info(`${files[0]} parse succeeded`)
+            // add_ynode_ids(ydoc)
+            // console.info(`${files[0]} ids added`)
           }
           catch (e) {
             let ename = e.name
@@ -110,7 +111,7 @@ function initialize () {
             }
             return
           }
-          mainWindow.webContents.send('selected-yaml', ydoc)
+          mainWindow.webContents.send('selected-yaml', inf)
         }
       })
     }

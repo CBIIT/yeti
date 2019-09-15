@@ -3,6 +3,7 @@ const _ = require('lodash')
 const path = require('path')
 const d3 = require('d3')
 const d3data = require('../data.js')
+const YAML=require('yaml')
 const {ipcRenderer} = require('electron')
 
 
@@ -24,15 +25,13 @@ undo_stack = []
 
 // how to preserve comments?
 
-var ydata = null;
+var ydoc = null;
 
 $(function () {
   ipcRenderer
-    .on('selected-yaml', function (event, ydoc) {
-      //      $('#yaml-container')
-      //        .append(markup_obj(ydoc))
-      ydata = ydoc
-      d3data.render_data(ydata)
+    .on('selected-yaml', function (event, inf) {
+      ydoc = YAML.parseDocument(inf, { prettyErrors: true })
+      d3data.render_data(ydoc)
       yaml_doc_setup()
     })
 })
