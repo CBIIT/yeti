@@ -77,4 +77,7 @@ a {
     color: lightblue;
     font-style: italic;
 }
+.yaml-scalar {
+    display: inline;
+}
                

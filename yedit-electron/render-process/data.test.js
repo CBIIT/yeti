@@ -181,7 +181,6 @@ test('append pair to blue (PAIR to MAP)', () => {
 test('prepend scalar to gelb (PLAIN to SEQ)', () => {
   let ato = yd.get_node_by_id('n17')
   let nod = yd.create_node("new_prepend")
-  console.log(nod)
   expect(ato.key.value).toBe('gelb')
   expect(nod.type).toBe('PLAIN')
   expect(ato.value.type).toBe('SEQ')

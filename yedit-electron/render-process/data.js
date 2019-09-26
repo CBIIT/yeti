@@ -47,7 +47,7 @@ function render_data(ydoc) {
         }
         return cls
       })  
-      .attr("data-node-id", d => { return d.data.type == 'PAIR' ? `${d.data.id}p` : d.data.id })
+      .attr("data-node-id", d => d.data.id ) // return d.data.type == 'PAIR' ? `${d.data.id}p` : d.data.id })
       .each( function (d) { create_from_yaml_node(d,n.data.type,this) } )  
   })
   return yh
@@ -207,7 +207,7 @@ function instrument_ydoc(ydoc) {
       else if (n instanceof ytypes.Pair)
         n.type='PAIR'
       else
-        console.log('bork')
+        console.error('bork')
     }
   }
   ydoc._index_ynode_ids = function (node) {

@@ -31,6 +31,7 @@ $(function () {
   ipcRenderer
     .on('selected-yaml', function (event, inf) {
       ydoc = YAML.parseDocument(inf, { prettyErrors: true })
+      d3data.instrument_ydoc(ydoc)
       d3data.render_data(ydoc)
       yaml_doc_setup()
     })
@@ -245,13 +246,16 @@ function edit_control_setup () {
       } )
     .click( (e) => {
       e.preventDefault()
+      let node_id = $(e.target.closest('[data-node-id]')).attr('data-node-id')
       if ($(e.target).text() == "⊕") {
 	switch (cls) {
 	case 'yaml-obj-ent':
-	  insert_obj_ent(e.target.closest('.'+cls))
+          console.log( node_id )
+	  // insert_obj_ent(e.target.closest('.'+cls))
 	  break
 	case 'yaml-arr-elt':
-	  insert_arr_elt(e.target.closest('.'+cls))
+          console.log( node_id )
+	  //insert_arr_elt(e.target.closest('.'+cls))
 	  break
 	default:
 	  break
@@ -259,7 +263,9 @@ function edit_control_setup () {
       }
       else if ($(e.target).text() == "⊗") {
         $(e.target).trigger('mouseout')
-	$(e.target).closest('.'+cls).each(delete_entity)
+	// $(e.target).closest('.'+cls).each(delete_entity)
+        ydoc.remove_node_by_id(node_id)
+        d3data.render_data(ydoc)
       }
     })
 }
