@@ -17,6 +17,9 @@ a {
 .yaml-obj {
     padding-inline-start: 12px;
 }
+.yaml-arr {
+    padding-inline-start: 12px;
+}
 
 .yaml-arr-elt-control {
     color: green;

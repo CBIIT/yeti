@@ -53,6 +53,18 @@ ydata.instrument_ydoc(yd)
 // PLAIN n33 n31 violette
 // PLAIN n34 n31 brun
 
+test('yd root is n0', () => {
+  expect(yd.contents.id).toBe('n0')
+})
+test('yd root parent is container', () => {
+  expect(yd.contents.parent_id).toBe('container')
+})
+test('ordered index is correct', () => {
+  expect(yd.order.map(d => d.id)).toStrictEqual(['n0','n1', 'n2', 'n3', 'n4', 'n5', 'n6', 'n7', 'n8', 'n9', 'n10', 'n11', 'n12', 'n13', 'n14', 'n15', 'n16', 'n17', 'n18', 'n19', 'n20', 'n21', 'n22', 'n23', 'n24', 'n25', 'n26', 'n27', 'n28', 'n29', 'n30', 'n31', 'n32', 'n33', 'n34'])
+})
+test('order same length as index', () => {
+  expect(Object.keys(yd.index).length).toBe(yd.order.length)
+})
 test('yd is yaml Doc', () =>{
   expect(yd).toBeInstanceOf(yaml.Document)
 })

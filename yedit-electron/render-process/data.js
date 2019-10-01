@@ -5,80 +5,69 @@ const _ = require('lodash')
 
 
 // ydoc isa yaml.Document
-// return d3.hierarchy
+
 function render_data(ydoc) {
   if ( ! ydoc instanceof yaml.Document ) {
     console.error( "create_data() - arg must be yaml.Document object")
     return
   }
-  if (!ydoc.node_by_id) {
+  if (!ydoc.instrumented) {
     instrument_ydoc(ydoc)
   }
-  let yh = d3.hierarchy( ydoc.contents, children )
-  yh.each( (n) => {
-    if (n.children == null) 
-      return
+  // let yh = d3.hierarchy( ydoc.contents, children )
 
-    d3.selectAll(`div[data-node-id="${n.data.id}"`) // has to be selectAll
-      .selectAll("div")
-      .data(n.children, d => { d ? d.data.id : null } )
+  d3.select('div[data-node-id="container"')
+    .datum({id: 'container',parent_id:'container'})
+  ydoc.order.forEach( (d) => {
+    d3.selectAll(`div[data-node-id=${d.parent_id}`) // this one exists
+      .selectAll(`div[data-node-id=${d.id}`) // this one doesn't yet
+      .data([d], dd => dd.id)
       .enter()
-      .append("div")
-      .attr("class", (d) => {
-        let cls = ""
-        switch (d.data.type) {
-        case 'PAIR':
-          cls = "yaml-obj-ent"
-          break
-        case 'SEQ':
-          cls = "yaml-arr yaml-entity"
-          break
-        case 'MAP':
-          cls = "yaml-obj yaml-entity"
-          break
-        case 'PLAIN':
-          if (n.data.type=='SEQ')
-            cls = "yaml-arr-elt"
-          else
-            cls = "yaml-scalar"
-          break
-        default:
-          1;
+      .append(
+        function (d) {
+          let p, ptype
+          if (d.parent_id=='container') {
+            ptype = 'CONTAINER'
+          }
+          else {
+            p = ydoc.get_parent_by_id(d.id)
+            ptype = p ? p.type : null
+          }
+          return create_from_yaml_node(d,ptype)
         }
-        return cls
-      })  
-      .attr("data-node-id", d => d.data.id ) // return d.data.type == 'PAIR' ? `${d.data.id}p` : d.data.id })
-      .each( function (d) { create_from_yaml_node(d,n.data.type,this) } )  
+      )
   })
-  return yh
 }
 
-
-
-function create_from_yaml_node(d, parentType, elt) {
-  switch (d.data.type) {
+function create_from_yaml_node(d, parentType) {
+  elt = document.createElement("div")
+  elt.setAttribute('data-node-id',d.id)
+  switch (d.type) {
   case 'PAIR':
     elt.innerHTML =
       '<span class="yaml-obj-ent-control"></span>'+
-      `<input class="yaml-obj-key" value="${d.data.key.value}">`+
+      `<input class="yaml-obj-key" value="${d.key.value}">`+
       '<span class="yaml-obj-val-mrk">:</span>'+
       '<span class="yaml-status"></span>'
-    let ov = document.createElement("div")
-    ov.setAttribute('class','yaml-obj-val')
-    ov.setAttribute('data-node-id',d.data.id)
-    elt.append(ov)
+    elt.setAttribute('class','yaml-obj-ent')
     break
   case 'SEQ':
-    // let ae = document.createElement("div")
-    // ae.setAttribute('class','yaml-arr-elt')
-    // ae.setAttribute('data-node-id',d.data.id)
-    // this.append(ae)
+    elt.setAttribute('class', 'yaml-arr yaml-entity')
+    if (parentType == 'PAIR') {
+      let wrap = document.createElement("div")
+      wrap.setAttribute('class','yaml-obj-val')
+      wrap.append(elt)
+      elt = wrap
+    }
     break
   case 'MAP':
-    // let ob = document.createElement("div")
-    // ob.setAttribute('class', 'yaml-obj-ent boog')
-    // ob.setAttribute('data-node-id',d.data.id)
-    // this.append(ob)
+    elt.setAttribute('class','yaml-obj yaml-entity')
+    if (parentType == 'PAIR') {
+      let wrap = document.createElement("div")
+      wrap.setAttribute('class','yaml-obj-val')
+      wrap.append(elt)
+      elt = wrap
+    }
     break
   case 'PLAIN':
     let scl;
@@ -86,23 +75,24 @@ function create_from_yaml_node(d, parentType, elt) {
     case 'SEQ':
       elt.innerHTML =
         '<span class="yaml-arr-elt-mrk">-</span>'+
-        `<input class="yaml-ptext" value="${d.data.value}">`+
+        `<input class="yaml-ptext" value="${d.value}">`+
         '<span class="yaml-status"></span>'+
         '<span class="yaml-arr-elt-control"></span>'
+      elt.setAttribute('class','yaml-arr-elt')
       break
     case 'PAIR':
       elt.innerHTML =
-        `<input class="yaml-ptext" value="${d.data.value}">`
+        `<input class="yaml-ptext" value="${d.value}">`
+      elt.setAttribute('class','yaml-scalar')
       break
     default:
       console.error(`Can't handle PLAIN scalar at this position`)
     }
     break
   default:
-    console.error(`Can't handle ${d.data.type} at this position`)
+    console.error(`Can't handle ${d.type} at this position`)
   }
-
-  return
+  return elt
 }
 
 function children (n) {
@@ -143,6 +133,7 @@ function instrument_ydoc(ydoc) {
       i++
     }
   }
+  ydoc.instrumented = true
   ydoc._idgen = idgen()
   ydoc.__children = function (n) {
     switch (n.type) {
@@ -211,15 +202,18 @@ function instrument_ydoc(ydoc) {
     }
   }
   ydoc._index_ynode_ids = function (node) {
-    if (!this.index)
+    if (!this.index) {
       this.index = {}
+      this.order = []
+    }
     // this.index[node.id] = node
-    this.__walk(node, (n) => {this.index[n.id] = n}, true)
+      this.__walk(node, (n) => {this.index[n.id] = n; this.order.push(n);}, true)
     return true
   }
   ydoc._add_ynode_ids(ydoc.contents)
   ydoc._type_ynode(ydoc.contents)
   ydoc._set_parent_ids(ydoc.contents)
+  ydoc.contents.parent_id='container'
   ydoc._index_ynode_ids(ydoc.contents)
   ydoc.get_node_by_id = function (id) {
     if (!this.index[id]) {
