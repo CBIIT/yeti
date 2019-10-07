@@ -101,6 +101,7 @@ test('remove violette node (mbr of SEQ)', () => {
   expect(yd.remove_node_by_id('n33')).toBeTruthy()
   expect(yd.get_node_by_id('n33')).toBeFalsy()
   expect(pn.get(1)).toBe('brun')
+  expect(Object.keys(yd.index).length).toBe(yd.order.length)
 })
   
 test('remove yellow node (PAIR of MAP)', () => {
@@ -108,6 +109,7 @@ test('remove yellow node (PAIR of MAP)', () => {
   expect( yd.remove_node_by_id('n3') ).toBeTruthy()
   expect( yd.get_node_by_id('n3')).toBeFalsy()
   expect( yd.get_node_by_id('n30')).toBeFalsy() // 'bleu' node a child of deleted 'yellow' Pair
+  expect(Object.keys(yd.index).length).toBe(yd.order.length)
 })
 
 test('create node', () =>{
@@ -125,6 +127,7 @@ test('insert node before azul/b', () => {
   expect( yd.insert_at_id('n11',nod,true)).toBeTruthy()
   expect( yd.get_parent_by_id('n6').getIn(['azul',1]).get('new') ).toBe('before b')
   expect( at.get(2) ).toBe('b')
+  expect(Object.keys(yd.index).length).toBe(yd.order.length)  
 })
 
 test('insert node before azul/a', () => {
@@ -135,7 +138,7 @@ test('insert node before azul/a', () => {
   expect( yd.insert_at_id('n10',nod,true)).toBeTruthy()
   expect( yd.get_parent_by_id('n6').getIn(['azul',0]).get('new') ).toBe('before a')
   expect( at.get(1) ).toBe('a')
-  expect
+  expect(Object.keys(yd.index).length).toBe(yd.order.length)
 })
 
 test('insert node after azul/a', () => {
@@ -146,6 +149,7 @@ test('insert node after azul/a', () => {
   expect( yd.insert_at_id('n10',nod)).toBeTruthy()
   expect( yd.get_parent_by_id('n6').getIn(['azul',2]).get('new') ).toBe('after a')
   expect( at.get(1) ).toBe('a')
+  expect(Object.keys(yd.index).length).toBe(yd.order.length)  
 })
 
 test('insert pair node after amarillo', () => {
@@ -160,6 +164,7 @@ test('insert pair node after amarillo', () => {
   expect( pn.items[2].key.value ).toBe('amarillo')
   expect( pn.items[3].key.value ).toBe('new')
   expect( pn.items[3].value.type ).toBe('MAP')
+  expect(Object.keys(yd.index).length).toBe(yd.order.length)
 })
 
 test('insert pair node before amarillo', () => {
@@ -175,6 +180,7 @@ test('insert pair node before amarillo', () => {
   console.log( pn.items[2] )
   expect( pn.items[2].value.type).toBe('MAP')
   expect( pn.items[3].key.value ).toBe('amarillo')
+  expect(Object.keys(yd.index).length).toBe(yd.order.length)
 })
 
 test('append pair to blue (PAIR to MAP)', () => {
@@ -188,6 +194,7 @@ test('append pair to blue (PAIR to MAP)', () => {
   expect( nod.parent_id).toBe(ato.value.id)
   expect( yd.get_parent_by_id(nod.id) ).toEqual( ato.value )
   expect( ato.value.items[ato.value.items.length-1] ).toEqual( nod )
+  expect(Object.keys(yd.index).length).toBe(yd.order.length)
 })
 
 test('prepend scalar to gelb (PLAIN to SEQ)', () => {
@@ -200,4 +207,5 @@ test('prepend scalar to gelb (PLAIN to SEQ)', () => {
   expect( nod.parent_id).toBe(ato.value.id)
   expect( yd.get_parent_by_id(nod.id) ).toEqual( ato.value )
   expect( ato.value.items[0] ).toEqual( nod )
+  expect(Object.keys(yd.index).length).toBe(yd.order.length)
 })

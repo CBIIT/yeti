@@ -256,8 +256,11 @@ function instrument_ydoc(ydoc) {
   ydoc.remove_node_by_id = function (id) {
     let n=this.get_node_by_id(id) ;
     if (!n) return ;
-    let child_ids=[]
-    this.__walk(n, (nn) => { let c = this.__children(nn) ; if (c) c.forEach( (d) => { child_ids.push(d.id) } ) },true )
+    let child_ids=[id]
+    this.__walk(n, (nn) => {
+      let c = this.__children(nn)
+      if (c) c.forEach( (d) => { child_ids.push(d.id) } )
+    },true )
     if (!n.parent_id) {
       console.error("ydoc: can't remove root node")
       return
@@ -272,8 +275,15 @@ function instrument_ydoc(ydoc) {
       n.parent_id=null
       pn.delete(i)
     }
-    delete this.index[id]
-    child_ids.forEach( (cid) => { delete this.index[cid] } )
+    child_ids.forEach( (cid) => {
+      let i_d = this.order.findIndex( (n) => { return n.id == cid } )
+      console.log(i_d)
+      if (i_d >= 0) {
+        this.order.splice(i_d,1)
+      }
+      delete this.index[cid]
+    } )
+    console.log("counts:", Object.keys(this.index).length, this.order.length)
     return true
   }
   ydoc.insert_at_id = function(id,node,before) {
