@@ -6,9 +6,10 @@ const _ = require('lodash')
 
 // ydoc isa yaml.Document
 
+// create new document
 function render_data(ydoc) {
   if ( ! ydoc instanceof yaml.Document ) {
-    console.error( "create_data() - arg must be yaml.Document object")
+    console.error( "render_data() - arg must be yaml.Document object")
     return
   }
   if (!ydoc.instrumented) {
@@ -38,6 +39,58 @@ function render_data(ydoc) {
       )
   })
 }
+
+// update current document
+function update_data(ydoc) {
+  if ( ! ydoc instanceof yaml.Document ) {
+    console.error( "update_data() - arg must be yaml.Document object")
+    return
+  }
+  if (!ydoc.instrumented) {
+    console.error( "update_data() - yaml.Document not instrumented for id updates (use instrument_ydoc())");
+    return
+  }
+  d3.selectAll('div[data-node-id]')
+    .data(ydoc.order, d => { return d.id })
+    .join(
+      enter => {
+        enter
+          .each(
+            function (d) {
+              let p, ptype
+              if (d.parent_id=='container') {
+                ptype = 'CONTAINER'
+              }
+              else {
+                p = ydoc.get_parent_by_id(d.id)
+                ptype = p ? p.type : null
+              }
+              let node = create_from_yaml_node(d,ptype)
+              // fix: insert in correct position
+              if (d.sib_id) {
+                d3.select(`div[data-node-id='${d.sib_id}'`)
+                  .each( function () {
+                    let sib = this
+                    d3.select(`div[data-node-id='${d.parent_id}'`)
+                      .insert( ()=>{return node}, () => { return sib } )
+                  })
+              }
+              else {
+                d3.select(`div[data-node-id='${d.parent_id}'`).append(function () { return node})
+              }
+              return true
+            }
+          )        
+      },
+      update => { return },
+      exit => {
+        exit
+          .filter(":not([data-node-id='container'])")
+          .remove()
+      }
+    )
+}
+
 
 function create_from_yaml_node(d, parentType) {
   elt = document.createElement("div")
@@ -91,6 +144,9 @@ function create_from_yaml_node(d, parentType) {
     break
   default:
     console.error(`Can't handle ${d.type} at this position`)
+  }
+  for ( let i=0; i<elt.children.length ; i++) {
+    elt.children[i].__data__ = d
   }
   return elt
 }
@@ -277,13 +333,11 @@ function instrument_ydoc(ydoc) {
     }
     child_ids.forEach( (cid) => {
       let i_d = this.order.findIndex( (n) => { return n.id == cid } )
-      console.log(i_d)
       if (i_d >= 0) {
         this.order.splice(i_d,1)
       }
       delete this.index[cid]
     } )
-    console.log("counts:", Object.keys(this.index).length, this.order.length)
     return true
   }
   ydoc.insert_at_id = function(id,node,before) {
@@ -365,4 +419,5 @@ function instrument_ydoc(ydoc) {
 
 
 exports.render_data=render_data
+exports.update_data=update_data
 exports.instrument_ydoc=instrument_ydoc

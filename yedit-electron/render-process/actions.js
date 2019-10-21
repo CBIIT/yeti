@@ -54,28 +54,28 @@ function yaml_doc_setup () {
   })
 }
 
-function insert_obj_ent (tgt) {
-  // let ind = $(tgt.closest('.yaml-obj')).css('padding-inline-start')
-  // ind = Number(ind.match(/^([0-9]+)px/)[1])
-  // if (!ind) {
-  //   console.error("Couldn't find an indent padding (insert_obj_ent)")
-  // }
-  let ent = create_obj_ent(indent)
-      .insertBefore($(tgt)).first()
-  ent.find('input').trigger('focus')
-  push_to_undo('creation', ent)
+function insert_obj_ent (sib_id) {
+  // let ent = create_obj_ent(indent)
+  //     .insertBefore($(tgt)).first()
+  // ent.find('input').trigger('focus')
+  // push_to_undo('creation', ent)
+  let new_node = ydoc.create_pair_node('new_key', 'selector')
+  new_node.key.value = new_node.key.value+new_node.id
+  // add to node - return sib id and "before" flag
+  new_node.sib_id = sib_id
+  new_node.before = true
+  ydoc.insert_at_id(sib_id,new_node,true)
 }
 
-function insert_arr_elt (tgt) {
-  // let ind = $(tgt.closest('.yaml-arr')).css('padding-inline-start')
-  // ind = Number(ind.match(/^([0-9]+)px/)[1])
-  // if (!ind) {
-  //   console.error("Couldn't find an indent padding (insert_obj_ent)")
-  // }
-  console.log(tgt)
-  let ent = create_arr_elt(indent)
-  ent.insertAfter($(tgt))
-  push_to_undo('creation', ent)
+function insert_arr_elt (sib_id) {
+  // let ent = create_arr_elt(indent)
+  // ent.insertAfter($(tgt))
+  // push_to_undo('creation', ent)
+  let new_node = ydoc.create_node('selector')
+  // add to node - return sib id and "before" flag
+  new_node.sib_id = sib_id
+  new_node.before = true
+  ydoc.insert_at_id(sib_id,new_node,true)
 }
 
 function create_obj (ind, scalar) {
@@ -252,20 +252,23 @@ function edit_control_setup () {
 	case 'yaml-obj-ent':
           console.log( node_id )
 	  // insert_obj_ent(e.target.closest('.'+cls))
+          insert_obj_ent(node_id)
 	  break
 	case 'yaml-arr-elt':
           console.log( node_id )
 	  //insert_arr_elt(e.target.closest('.'+cls))
+          insert_arr_elt( node_id )
 	  break
 	default:
 	  break
 	}
+        d3data.update_data(ydoc)
       }
       else if ($(e.target).text() == "⊗") {
         $(e.target).trigger('mouseout')
 	// $(e.target).closest('.'+cls).each(delete_entity)
         ydoc.remove_node_by_id(node_id)
-        d3data.render_data(ydoc)
+        d3data.update_data(ydoc)
       }
     })
 }
