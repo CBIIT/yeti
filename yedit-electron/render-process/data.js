@@ -40,8 +40,9 @@ function render_data(ydoc) {
   })
 }
 
-// update current document
+// update current document and return list of new dom nodes
 function update_data(ydoc) {
+  let new_nodes = []
   if ( ! ydoc instanceof yaml.Document ) {
     console.error( "update_data() - arg must be yaml.Document object")
     return
@@ -66,17 +67,28 @@ function update_data(ydoc) {
                 ptype = p ? p.type : null
               }
               let node = create_from_yaml_node(d,ptype)
-              // fix: insert in correct position
               if (d.sib_id) {
                 d3.select(`div[data-node-id='${d.sib_id}'`)
                   .each( function () {
                     let sib = this
-                    d3.select(`div[data-node-id='${d.parent_id}'`)
+                    // note, select() in next call, plus the insert(),
+                    // will push the data
+                    // from the parent MAP down to the PAIR - yaml-obj-ent
+                    // -- this is not desired, want 'node' to preserve
+                    // the data already assigned to it in create_node_from_yaml
+                    d3.selectAll(`div[data-node-id='${d.parent_id}'`)
                       .insert( ()=>{return node}, () => { return sib } )
+                    // kludge it by resetting .__data__,
+                    // although this is done in create_from_yaml_node
+                    node.__data__ = d
                   })
               }
               else {
-                d3.select(`div[data-node-id='${d.parent_id}'`).append(function () { return node})
+                d3.selectAll(`div[data-node-id='${d.parent_id}'`)
+                  .append(() => {return node})
+                // kludge it by resetting .__data__,
+                // although this is done in create_from_yaml_node
+                node.__data__ = d
               }
               return true
             }
@@ -89,6 +101,7 @@ function update_data(ydoc) {
           .remove()
       }
     )
+  return new_nodes
 }
 
 
@@ -145,6 +158,8 @@ function create_from_yaml_node(d, parentType) {
   default:
     console.error(`Can't handle ${d.type} at this position`)
   }
+  console.log("HEY")
+  elt.__data__ = d
   for ( let i=0; i<elt.children.length ; i++) {
     elt.children[i].__data__ = d
   }
@@ -298,12 +313,15 @@ function instrument_ydoc(ydoc) {
   }
   
   ydoc.create_pair_node = function (key,...args) {
-    let n = this.create_node(...args)
+    // create nodes and IDs "by hand"
+    let n = yaml.createNode(...args,true)
+    this._type_ynode(n)
     let k = new ytypes.Scalar()
     k.type = 'PLAIN'
     k.value = key
     let pr = new ytypes.Pair(k,n)
     this._add_ynode_ids(pr)
+    this._set_parent_ids(pr)
     this._index_ynode_ids(pr)
     return pr
   }

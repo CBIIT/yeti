@@ -78,60 +78,6 @@ function insert_arr_elt (sib_id) {
   ydoc.insert_at_id(sib_id,new_node,true)
 }
 
-function create_obj (ind, scalar) {
-  let obj = $( '<div class="yaml-obj yaml-entity" style="padding-inline-start:'+ind+'px">'+
-	       '<span class="yaml-status"></span></div></div>' )
-  create_obj_ent(ind).insertBefore(obj.find('.yaml-status'))
-  return obj
-}
-
-function create_obj_ent (ind) {
-  let elt = $('<div class="yaml-obj-ent">' +
-	      '<span class="yaml-obj-ent-control">+</span>' +
-	      '<input class="yaml-obj-key" value="">'+
-	      '<span class="yaml-obj-val-mrk">: </span>'+
-	      '<span class="yaml-status></span>'+
-	      '</div>');
-  create_obj_val(ind).insertAfter(elt.find('.yaml-obj-val-mrk'))
-  $(elt).find(".yaml-obj-key")
-    .dblclick( hider )
-  $(elt).find(".yaml-obj-ent-control").each( edit_control_setup )
-  return elt
-}
-
-function create_obj_val (ind, val) {
-  let elt = $('<div class="yaml-obj-val"></div>')
-  if (val) {
-    val.appendTo(elt)
-  }
-  else {
-    create_type_select(ind).appendTo(elt)
-  }
-  return elt
-}
-
-function create_arr (ind) {
-  let arr = $( '<div class="yaml-arr yaml-entity" style="padding-inline-start:'+ind+'px">'+
-	       '<span class="yaml-status"></span></div></div>' )
-  create_arr_elt(ind).insertBefore(arr.find('.yaml-status'))
-  return arr
-}
-
-function create_arr_elt (ind, val) {
-  let elt = $('<div class="yaml-arr-elt">' +
-	      '<span class="yaml-arr-elt-mrk">- </span>'+
-	      '<span class="yaml-arr-elt-control"></span>' +
-	      '<span class="yaml-status"></span>'+
-	      '</div>');
-  if (val) {
-    val.insertAfter(elt.find('.yaml-arr-elt-mrk'))    
-  }
-  else {
-    create_type_select(ind).insertAfter(elt.find('.yaml-arr-elt-mrk'))
-  }
-  $(elt).find(".yaml-arr-elt-control").each( edit_control_setup )
-  return elt
-}
 
 function create_type_select(indent) {
   let sel = $('<select><option value="">select</option>'+
@@ -206,7 +152,6 @@ function hider (e) {
   
   $(hid)
     .fadeToggle(function () {
-      console.log($(this).css("display"),"< disp val")
       if ($(this).css("display") == 'none') {
 	$(stat).text(" ...") // stuff hidden here
           .dblclick(hider)
@@ -246,30 +191,28 @@ function edit_control_setup () {
       } )
     .click( (e) => {
       e.preventDefault()
+      let new_nodes = []
       let node_id = $(e.target.closest('[data-node-id]')).attr('data-node-id')
       if ($(e.target).text() == "⊕") {
 	switch (cls) {
 	case 'yaml-obj-ent':
-          console.log( node_id )
 	  // insert_obj_ent(e.target.closest('.'+cls))
           insert_obj_ent(node_id)
 	  break
 	case 'yaml-arr-elt':
-          console.log( node_id )
 	  //insert_arr_elt(e.target.closest('.'+cls))
           insert_arr_elt( node_id )
 	  break
 	default:
 	  break
 	}
-        d3data.update_data(ydoc)
       }
       else if ($(e.target).text() == "⊗") {
         $(e.target).trigger('mouseout')
 	// $(e.target).closest('.'+cls).each(delete_entity)
         ydoc.remove_node_by_id(node_id)
-        d3data.update_data(ydoc)
       }
+      new_nodes = d3data.update_data(ydoc)
     })
 }
 
@@ -407,4 +350,60 @@ function parse_dom() {
     }
 
   }
+}
+// deprec
+
+function create_obj (ind, scalar) {
+  let obj = $( '<div class="yaml-obj yaml-entity" style="padding-inline-start:'+ind+'px">'+
+	       '<span class="yaml-status"></span></div></div>' )
+  create_obj_ent(ind).insertBefore(obj.find('.yaml-status'))
+  return obj
+}
+
+function create_obj_ent (ind) {
+  let elt = $('<div class="yaml-obj-ent">' +
+	      '<span class="yaml-obj-ent-control">+</span>' +
+	      '<input class="yaml-obj-key" value="">'+
+	      '<span class="yaml-obj-val-mrk">: </span>'+
+	      '<span class="yaml-status></span>'+
+	      '</div>');
+  create_obj_val(ind).insertAfter(elt.find('.yaml-obj-val-mrk'))
+  $(elt).find(".yaml-obj-key")
+    .dblclick( hider )
+  $(elt).find(".yaml-obj-ent-control").each( edit_control_setup )
+  return elt
+}
+
+function create_obj_val (ind, val) {
+  let elt = $('<div class="yaml-obj-val"></div>')
+  if (val) {
+    val.appendTo(elt)
+  }
+  else {
+    create_type_select(ind).appendTo(elt)
+  }
+  return elt
+}
+
+function create_arr (ind) {
+  let arr = $( '<div class="yaml-arr yaml-entity" style="padding-inline-start:'+ind+'px">'+
+	       '<span class="yaml-status"></span></div></div>' )
+  create_arr_elt(ind).insertBefore(arr.find('.yaml-status'))
+  return arr
+}
+
+function create_arr_elt (ind, val) {
+  let elt = $('<div class="yaml-arr-elt">' +
+	      '<span class="yaml-arr-elt-mrk">- </span>'+
+	      '<span class="yaml-arr-elt-control"></span>' +
+	      '<span class="yaml-status"></span>'+
+	      '</div>');
+  if (val) {
+    val.insertAfter(elt.find('.yaml-arr-elt-mrk'))    
+  }
+  else {
+    create_type_select(ind).insertAfter(elt.find('.yaml-arr-elt-mrk'))
+  }
+  $(elt).find(".yaml-arr-elt-control").each( edit_control_setup )
+  return elt
 }
