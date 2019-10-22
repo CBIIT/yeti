@@ -2,7 +2,6 @@ const $ = require('jquery')
 const _ = require('lodash')
 const path = require('path')
 const d3 = require('d3')
-//console.log(__dirname, __filename)
 
 const d3data = require('../data.js')
 const YAML=require('yaml')
@@ -214,7 +213,11 @@ function edit_control_setup () {
 	// $(e.target).closest('.'+cls).each(delete_entity)
         ydoc.remove_node_by_id(node_id)
       }
-      new_nodes = d3data.update_data(ydoc)
+      d3data.update_data(ydoc)
+        .forEach( function (n) {
+          $(n).find("span[class$='control']")
+            .each( edit_control_setup )
+        })
     })
 }
 

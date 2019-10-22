@@ -91,6 +91,7 @@ function update_data(ydoc) {
                 // although this is done in create_from_yaml_node
                 node.__data__ = d
               }
+              new_nodes.push(node)
               return true
             }
           )        
@@ -159,7 +160,6 @@ function create_from_yaml_node(d, parentType) {
   default:
     console.error(`Can't handle ${d.type} at this position`)
   }
-  console.log("HEY")
   elt.__data__ = d
   for ( let i=0; i<elt.children.length ; i++) {
     elt.children[i].__data__ = d
