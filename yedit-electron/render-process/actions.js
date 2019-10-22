@@ -2,6 +2,8 @@ const $ = require('jquery')
 const _ = require('lodash')
 const path = require('path')
 const d3 = require('d3')
+//console.log(__dirname, __filename)
+
 const d3data = require('../data.js')
 const YAML=require('yaml')
 const {ipcRenderer} = require('electron')
@@ -31,7 +33,7 @@ $(function () {
   ipcRenderer
     .on('selected-yaml', function (event, inf) {
       ydoc = YAML.parseDocument(inf, { prettyErrors: true })
-      d3data.instrument_ydoc(ydoc)
+      // d3data.instrument_ydoc(ydoc)
       d3data.render_data(ydoc)
       yaml_doc_setup()
     })
