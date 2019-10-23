@@ -81,7 +81,6 @@ function update_data(ydoc) {
                       .insert( ()=>{return node}, () => { return sib } )
                     // kludge it by resetting .__data__,
                     // although this is done in create_from_yaml_node
-                    node.__data__ = d
                   })
               }
               else {
@@ -89,8 +88,8 @@ function update_data(ydoc) {
                   .append(() => {return node})
                 // kludge it by resetting .__data__,
                 // although this is done in create_from_yaml_node
-                node.__data__ = d
               }
+              node.__data__ = d
               new_nodes.push(node)
               return true
             }

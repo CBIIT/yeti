@@ -211,13 +211,16 @@ function instrument_ydoc(ydoc) {
     }
     node.parent_id=pn.id
     if (before) {
+      node.sib_id=pn.items[i].id
       pn.items.splice(i,0,node)
     }
     else {
       if (i == pn.items.length-1) {
+        node.sib_id = null
         pn.items.splice(pn.items.length,0,node)
       }
       else {
+        node.sib_id=pn.items[i+1].id
         pn.items.splice(i+1,0,node)
       }
     }
@@ -286,7 +289,7 @@ function instrument_ydoc(ydoc) {
       delete this.index[id]
       break
     case 'SEQ':
-      this.insert_at_id(id,newn)
+      this.insert_at_id(id,newn,true)
       this.remove_node_by_id(id)
       break
     default:

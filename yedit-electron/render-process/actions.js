@@ -80,13 +80,22 @@ function insert_arr_elt (sib_id) {
 }
 
 function do_select () {
-  let value = this.value;
+  let selected = this.querySelector('select').value;
   let data = this.__data__;
-  if (!ydoc.stub_out(data.id, value)) {
+  if (!ydoc.stub_out(data.id, selected)) {
     console.error('error in do_select() - stub not created')
     return false
   }
   d3data.update_data(ydoc)
+    .forEach( function (n) {
+      $(n).find("span[class$='control']")
+        .each( edit_control_setup )
+      $(n).find("select")
+        .off('change')
+        .change( function (e) {
+          $(e.target).closest('div[class^="yaml"]').each(do_select)
+        })
+    })
   return true
 }
 
@@ -216,8 +225,9 @@ function edit_control_setup () {
           $(n).find("span[class$='control']")
             .each( edit_control_setup )
           $(n).find("select")
+            .off('change')
             .change( function (e) {
-              $(e.target).each(do_select)
+              $(e.target).closest('div[class^="yaml"]').each(do_select)
             })
         })
     })
