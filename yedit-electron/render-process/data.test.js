@@ -1,11 +1,11 @@
 const yaml = require('yaml')
 const ytypes = require('yaml/types')
 const fs = require('fs')
-const ydata = require('./data.js')
+const ydoci = require('./ydoci.js')
 
 yf = fs.readFileSync('test.yaml','utf-8')
 yd = yaml.parseDocument(yf)
-ydata.instrument_ydoc(yd)
+ydoci.instrument_ydoc(yd)
 
 // get_node_by_id
 // create_node
@@ -201,11 +201,104 @@ test('prepend scalar to gelb (PLAIN to SEQ)', () => {
   let ato = yd.get_node_by_id('n17')
   let nod = yd.create_node("new_prepend")
   expect(ato.key.value).toBe('gelb')
-  expect(nod.type).toBe('PLAIN')
+  expect(nod.type).toBe('PLAIN')<
   expect(ato.value.type).toBe('SEQ')
   expect( yd.append_to_id(ato.value.id, nod, true) ).toBeTruthy()
   expect( nod.parent_id).toBe(ato.value.id)
   expect( yd.get_parent_by_id(nod.id) ).toEqual( ato.value )
   expect( ato.value.items[0] ).toEqual( nod )
   expect(Object.keys(yd.index).length).toBe(yd.order.length)
+})
+
+// test('remove kopf (value of PAIR)', () => {
+//   let pn = yd.get_parent_by_id('n28')
+//   expect(pn.type).toBe('PAIR')
+//   expect(yd.get_node_by_id('n28').value).toBe('kopf')
+//   expect(yd.remove_node_by_id('n28')).toBeTruthy()
+//   expect(yd.get_node_by_id('n28')).toBeFalsy()
+//   expect(Object.keys(yd.index).length).toBe(yd.order.length)
+// })
+
+test('stub scalar at kopf (value of PAIR)', () => {
+  let pn = yd.get_parent_by_id('n28')
+  let oldn;
+  expect(pn.type).toBe('PAIR')
+  expect(yd.get_node_by_id('n28').value).toBe('kopf')
+  expect(oldn = yd.stub_out('n28','scalar')).toBeTruthy()
+  expect(oldn.value).toBe('kopf')
+  expect(pn.value.value).toBe('new_value')
+  expect(yd.index['n28']).toBeFalsy()
+})
+
+test('stub array at former kopf (value of PAIR)', () => {
+  let pn = yd.get_node_by_id('n27')
+  let id = pn.value.id
+  let oldn;
+  expect(pn.type).toBe('PAIR')
+  expect(yd.get_node_by_id(id).value).toBe('new_value')
+  expect(yd.index[id]).toBeTruthy()
+  expect(oldn = yd.stub_out(id,'array')).toBeTruthy()
+  expect(oldn.value).toBe('new_value')
+  expect(pn.value.type).toBe('SEQ')
+  expect(pn.value.items[0].value).toBe('SELECT')
+  expect(yd.index[id]).toBeFalsy()
+})
+
+test('stub object at former kopf (value of PAIR)', () => {
+  let pn = yd.get_node_by_id('n27')
+  let id = pn.value.id
+  let oldn;
+  expect(pn.type).toBe('PAIR')
+  expect(yd.index[id]).toBeTruthy()
+  expect(oldn = yd.stub_out(id,'object')).toBeTruthy()
+  expect(oldn.type).toBe('SEQ')
+  expect(pn.value.type).toBe('MAP')
+  expect(pn.value.items[0].key.value).toBe('new_key')
+  expect(pn.value.items[0].value.value).toBe('SELECT')
+  expect(yd.index[id]).toBeFalsy()
+})
+
+test('stub scalar at c (element of SEQ)', () => {
+  let pn = yd.get_parent_by_id('n12')
+  let oldn;
+  expect(pn.type).toBe('SEQ')
+  expect(yd.index['n12']).toBeTruthy()
+  expect(yd.get_node_by_id('n12').value).toBe('c')
+  let oldi = pn.items.findIndex( (n) => { return n.value == 'c' } )
+  expect(oldn = yd.stub_out('n12','scalar')).toBeTruthy()
+  expect(oldn.value).toBe('c')
+  expect( pn.items.findIndex( (n) => { return n.value == 'new_value' } ) ).toBe(oldi)
+  expect(yd.index['n12']).toBeFalsy()
+})
+
+test('stub array at old c (element of SEQ)', () => {
+  let pn = yd.get_node_by_id('n9')
+  let id = pn.items.find( (n) => { return n.value == 'new_value' } ).id
+  expect(pn.type).toBe('SEQ')
+  expect(yd.index[id]).toBeTruthy()
+  let oldi = pn.items.findIndex( (n) => { return n.id == id } )
+  expect(oldn = yd.stub_out(id,'array')).toBeTruthy()
+  expect(oldn.value).toBe('new_value')
+  expect( pn.items.findIndex( (n) => { return n.type == 'SEQ' } ) ).toBe(oldi)
+  expect(yd.index[id]).toBeFalsy()
+})
+
+test('stub object at old c (element of SEQ)', () => {
+  let pn = yd.get_node_by_id('n9')
+  let id = pn.items.find( (n) => { return n.type == 'SEQ' } ).id
+  expect(pn.type).toBe('SEQ')
+  expect(yd.index[id]).toBeTruthy()
+  let oldi = pn.items.findIndex( (n) => { return n.id == id } )
+  expect(oldn = yd.stub_out(id,'object')).toBeTruthy()
+  expect(oldn.type).toBe('SEQ')
+  expect( pn.items.findIndex( (n) => { return n.type == 'MAP' && n.items[0].value == 'SELECT' } ) ).toBe(oldi)
+  expect(yd.index[id]).toBeFalsy()
+})
+
+
+
+
+test('print it', () => {
+  console.log(yd.toString())
+  expect(1).toBeTruthy()
 })

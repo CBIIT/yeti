@@ -110,6 +110,12 @@ function update_data(ydoc) {
 function create_from_yaml_node(d, parentType) {
   elt = document.createElement("div")
   elt.setAttribute('data-node-id',d.id)
+  let sel = '<select style="display:inline"><option value="">select</option>'+
+      '        <option value="scalar">scalar</option>'+
+      '        <option value="array">array</option>' +
+      '        <option value="object">object</option>'+
+      '</select>'
+
   switch (d.type) {
   case 'PAIR':
     elt.innerHTML =
@@ -143,13 +149,15 @@ function create_from_yaml_node(d, parentType) {
     case 'SEQ':
       elt.innerHTML =
         '<span class="yaml-arr-elt-mrk">-</span>'+
-        `<input class="yaml-ptext" value="${d.value}">`+
+        ( d.value == 'SELECT' ? sel :
+          `<input class="yaml-ptext" value="${d.value}">`)+
         '<span class="yaml-status"></span>'+
         '<span class="yaml-arr-elt-control"></span>'
       elt.setAttribute('class','yaml-arr-elt')
       break
     case 'PAIR':
       elt.innerHTML =
+        d.value == 'SELECT' ? sel :
         `<input class="yaml-ptext" value="${d.value}">`
       elt.setAttribute('class','yaml-scalar')
       break

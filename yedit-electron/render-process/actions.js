@@ -60,7 +60,7 @@ function insert_obj_ent (sib_id) {
   //     .insertBefore($(tgt)).first()
   // ent.find('input').trigger('focus')
   // push_to_undo('creation', ent)
-  let new_node = ydoc.create_pair_node('new_key', 'selector')
+  let new_node = ydoc.create_pair_node('new_key', 'SELECT')
   new_node.key.value = new_node.key.value+new_node.id
   // add to node - return sib id and "before" flag
   new_node.sib_id = sib_id
@@ -72,7 +72,7 @@ function insert_arr_elt (sib_id) {
   // let ent = create_arr_elt(indent)
   // ent.insertAfter($(tgt))
   // push_to_undo('creation', ent)
-  let new_node = ydoc.create_node('selector')
+  let new_node = ydoc.create_node('SELECT')
   // add to node - return sib id and "before" flag
   new_node.sib_id = sib_id
   new_node.before = true
@@ -90,6 +90,22 @@ function create_type_select(indent) {
     $(e.target).each(replace_select)
   })
   return sel
+}
+
+function do_select () {
+  let value = this.value;
+  let data = this.__data__;
+  
+  switch (value) {
+  case 'scalar':
+    break
+  case 'array':
+    break
+  case 'object':
+    break
+  default:
+    console.error( `Value ${value} not recognized in select` )
+  }
 }
 
 function replace_select () {
@@ -321,6 +337,9 @@ function push_to_undo(action, elt) {
   return { marked:marked_elt, action:marked_action }
 }
 
+
+// deprec
+
 function parse_dom() {
   return visit($(document).find('.yaml'))
   function visit($jq) {
@@ -356,7 +375,6 @@ function parse_dom() {
 
   }
 }
-// deprec
 
 function create_obj (ind, scalar) {
   let obj = $( '<div class="yaml-obj yaml-entity" style="padding-inline-start:'+ind+'px">'+

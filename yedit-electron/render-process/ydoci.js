@@ -239,8 +239,6 @@ function instrument_ydoc(ydoc) {
       console.error('can only append nodes of type PAIR to a MAP')
       return false
     }
-
-
     if (prepend) {
       n.items.splice(0,0,node)
     }
@@ -249,6 +247,51 @@ function instrument_ydoc(ydoc) {
     }
     node.parent_id = n.id
     return true
+  }
+  // add a scalar, array or object stub
+  // to replace the cadr of a Pair or an Array element
+  ydoc.stub_out = function( id, type ) {
+    let oldn = this.get_node_by_id(id)
+    let pn = this.get_parent_by_id(id)
+    if (pn.type != 'PAIR' && pn.type != 'SEQ') {
+      console.error('can only create stub from a Pair value or an Array element')
+      return false
+    }
+    let newn;
+    switch (type) {
+    case 'scalar':
+      newn = this.create_node('new_value')
+      break
+    case 'array':
+      newn = this.create_node( [ 'SELECT' ] )
+      break
+    case 'object':
+      newn = this.create_node( { new_key:'SELECT' } )
+      break
+    default:
+      console.error(`arg 2 should scalar|array|object, not ${type}`)
+      return false
+    }
+    switch (pn.type) {
+    case 'PAIR':
+      pn.value = newn
+      newn.parent_id = pn.id
+      // clean up index
+      let i_d = this.order.findIndex( (n) => { return n.id == id } )
+      if (i_d >= 0) {
+        this.order.splice(i_d,1)
+      }
+      delete this.index[id]
+      break
+    case 'SEQ':
+      this.insert_at_id(id,newn)
+      this.remove_node_by_id(id)
+      break
+    default:
+      console.error("Shouldn't be here")
+      return false
+    }
+    return oldn
   }
 }
 
