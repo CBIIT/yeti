@@ -79,33 +79,15 @@ function insert_arr_elt (sib_id) {
   ydoc.insert_at_id(sib_id,new_node,true)
 }
 
-
-function create_type_select(indent) {
-  let sel = $('<select><option value="">select</option>'+
-	      '        <option value="scalar">scalar</option>'+
-	      '        <option value="array">array</option>' +
-	      '        <option value="object">object</option>'+
-	      '</select>');
-  sel.change( function (e) {
-    $(e.target).each(replace_select)
-  })
-  return sel
-}
-
 function do_select () {
   let value = this.value;
   let data = this.__data__;
-  
-  switch (value) {
-  case 'scalar':
-    break
-  case 'array':
-    break
-  case 'object':
-    break
-  default:
-    console.error( `Value ${value} not recognized in select` )
+  if (!ydoc.stub_out(data.id, value)) {
+    console.error('error in do_select() - stub not created')
+    return false
   }
+  d3data.update_data(ydoc)
+  return true
 }
 
 function replace_select () {
@@ -233,6 +215,10 @@ function edit_control_setup () {
         .forEach( function (n) {
           $(n).find("span[class$='control']")
             .each( edit_control_setup )
+          $(n).find("select")
+            .change( function (e) {
+              $(e.target).each(do_select)
+            })
         })
     })
 }
@@ -395,6 +381,18 @@ function create_obj_ent (ind) {
     .dblclick( hider )
   $(elt).find(".yaml-obj-ent-control").each( edit_control_setup )
   return elt
+}
+
+function create_type_select(indent) {
+  let sel = $('<select><option value="">select</option>'+
+	      '        <option value="scalar">scalar</option>'+
+	      '        <option value="array">array</option>' +
+	      '        <option value="object">object</option>'+
+	      '</select>');
+  sel.change( function (e) {
+    $(e.target).each(replace_select)
+  })
+  return sel
 }
 
 function create_obj_val (ind, val) {

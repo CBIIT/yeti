@@ -9,6 +9,8 @@ const ytypes = require('yaml/types')
 // remove_node_by_id(id) - remove node 'id' from document
 // append_to_id(id, node, [prepend]) - append/prepend a node to a MAP or SEQ of 'id'
 // insert_at_id(id, node, [before])  - insert after/before node 'id' as a sibling in a MAP or SEQ
+// stub_out(id, type) -add a scalar, array or object stub to replace the value of a Pair or an Array element
+
 //
 // __walk(pnode, function, first) - apply function to each node, starting at and including pnode
 //                                - (call as ydoc.__walk(pnode, function, true))
