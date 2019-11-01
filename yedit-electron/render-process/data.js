@@ -7,6 +7,21 @@ const _ = require('lodash')
 
 // ydoc isa yaml.Document
 
+// the ff are nodes that have ids:
+// YAMLMap
+// Pair
+// -- neither the key nor the value slots are nodes, nor do they have a node id
+// YAMLSeq
+// Scalar leaves
+
+// therefore the following divs should have a data-node-id attr:
+// yaml-obj <-> YAMLMap
+// yaml-obj-ent <-> Pair
+// yaml-array <-> YAMLSeq
+// yaml-scalar <-> leaf
+// no yaml-obj-key, yaml-obj-val, or yaml-arr-elt should have a data-node-id attr.
+
+
 // create new document
 function render_data(ydoc) {
   if ( ! ydoc instanceof yaml.Document ) {
@@ -22,6 +37,7 @@ function render_data(ydoc) {
     .datum({id: 'container',parent_id:'container'})
   ydoc.order.forEach( (d) => {
     d3.selectAll(`div[data-node-id=${d.parent_id}`) // this one exists
+      .select('.insert-here')
       .selectAll(`div[data-node-id=${d.id}`) // this one doesn't yet
       .data([d], dd => dd.id)
       .enter()
@@ -114,32 +130,36 @@ function create_from_yaml_node(d, parentType) {
       '        <option value="array">array</option>' +
       '        <option value="object">object</option>'+
       '</select>'
-
   switch (d.type) {
   case 'PAIR':
     elt.innerHTML =
       '<span class="yaml-obj-ent-control"></span>'+
       `<input class="yaml-obj-key" value="${d.key.value}">`+
       '<span class="yaml-obj-val-mrk">:</span>'+
+      '<span class="insert-here"></span>'+
       '<span class="yaml-status"></span>'
     elt.setAttribute('class','yaml-obj-ent')
     break
   case 'SEQ':
-    elt.setAttribute('class', 'yaml-arr yaml-entity')
-    if (parentType == 'PAIR') {
-      let wrap = document.createElement("div")
-      wrap.setAttribute('class','yaml-obj-val')
-      wrap.append(elt)
-      elt = wrap
-    }
-    break
   case 'MAP':
-    elt.setAttribute('class','yaml-obj yaml-entity')
-    if (parentType == 'PAIR') {
-      let wrap = document.createElement("div")
-      wrap.setAttribute('class','yaml-obj-val')
-      wrap.append(elt)
-      elt = wrap
+    if (d.type == 'SEQ') {
+      elt.setAttribute('class', 'yaml-arr yaml-entity')
+    } else {
+      elt.setAttribute('class', 'yaml-obj yaml-entity')
+    }
+    switch (parentType) {
+    case 'CONTAINER':
+      elt.innerHTML = '<span class="insert-here"></span>'
+      break
+    case 'PAIR':
+      elt.innerHTML = `<div class="yaml-obj-val"><span class="insert-here"></span></div>`
+      break
+    case 'SEQ':
+      elt.innerHTML = `<div class="yaml-arr-elt"><span class="yaml-arr-elt-mrk">-</span>`+
+        '<span class="insert-here"></span>'+
+        '<span class="yaml-status"></span>'+
+        '<span class="yaml-arr-elt-control"></span></div>'
+      break
     }
     break
   case 'PLAIN':
@@ -147,17 +167,17 @@ function create_from_yaml_node(d, parentType) {
     switch (parentType) {
     case 'SEQ':
       elt.innerHTML =
-        '<span class="yaml-arr-elt-mrk">-</span>'+
+        '<span class="yaml-arr-elt-mrk">-</span>'+'<span class="insert-here">'+
         ( d.value == 'SELECT' ? sel :
-          `<input class="yaml-ptext" value="${d.value}">`)+
+          `<input class="yaml-ptext" value="${d.value}">`)+'</span>'+
         '<span class="yaml-status"></span>'+
         '<span class="yaml-arr-elt-control"></span>'
       elt.setAttribute('class','yaml-arr-elt')
       break
     case 'PAIR':
-      elt.innerHTML =
+      elt.innerHTML = '<span class="insert-here">'+
         d.value == 'SELECT' ? sel :
-        `<input class="yaml-ptext" value="${d.value}">`
+        `<input class="yaml-ptext" value="${d.value}">` + '</span>'
       elt.setAttribute('class','yaml-scalar')
       break
     default:
@@ -181,13 +201,10 @@ function children (n) {
     return [n.value]
     break
   case 'MAP':
-    // console.log('map')
     return n.items
   case 'SEQ':
-    // console.log('seq')
     return n.items
   default:
-    // console.log('>>',n.type)
     return null
   }
 }

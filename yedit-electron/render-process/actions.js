@@ -32,7 +32,6 @@ $(function () {
   ipcRenderer
     .on('selected-yaml', function (event, inf) {
       ydoc = YAML.parseDocument(inf, { prettyErrors: true })
-      // d3data.instrument_ydoc(ydoc)
       d3data.render_data(ydoc)
       yaml_doc_setup()
     })
@@ -99,64 +98,13 @@ function do_select () {
   return true
 }
 
-function replace_select () {
-  let value = this.value;
-  let container = $(this).parent().first()
-  let new_elt=null
-
-  if (container.hasClass('yaml-obj-val')) {
-    switch (value) {
-    case 'scalar':
-      new_elt=create_obj_val(indent, $('<input class="yaml-ptext yaml-scalar" value="">'))
-      break
-    case 'array':
-      new_elt=create_obj_val(indent, create_arr(indent))
-      break
-    case 'object':
-      new_elt=create_obj_val(indent, create_obj(indent))
-      break
-    }
-  }
-  else if (container.hasClass('yaml-arr-elt')) {
-    switch (value) {
-    case 'scalar':
-      new_elt=create_arr_elt(indent, $('<input class="yaml-ptext yaml-scalar" value="">'))
-      break
-    case 'array':
-      new_elt=create_arr_elt(indent, create_arr(indent))
-      break
-    case 'object':
-      new_elt=create_arr_elt(indent, create_obj(indent))
-      break
-    }
-  }
-  let marker = push_to_undo('deletion',container);
-  container.detach()
-  switch (marker.action) {
-  case 'before':
-    new_elt.insertBefore(marker.marked)
-    break
-  case 'after':
-    new_elt.insertAfter(marker.marked)
-    break
-  case 'append':
-    new_elt.appendTo(marker.marked)
-    break
-  default:
-    1
-  }
-  if (value == 'scalar') {
-    new_elt.find('input').trigger('focus')
-  }
-  push_to_undo('creation',new_elt)
-  return true
-}
-
 function hider (e) {
   e.stopPropagation()
   let tgt = e.target
   let hid = tgt.closest(".yaml-obj-ent").querySelector(".yaml-obj-val")
   let stat = tgt.closest(".yaml-obj-ent").querySelector(".yaml-status")
+  console.log(hid, stat)
+
   
   $(hid)
     .fadeToggle(function () {
@@ -197,6 +145,7 @@ function edit_control_setup () {
 	$(this).removeAttr('style').text("•")
 	$(document).off("keydown.yaml").off("keyup.yaml")
       } )
+    .off('click') // make sure there is only one handler (a kludge)
     .click( (e) => {
       e.preventDefault()
       let new_nodes = []
@@ -204,11 +153,9 @@ function edit_control_setup () {
       if ($(e.target).text() == "⊕") {
 	switch (cls) {
 	case 'yaml-obj-ent':
-	  // insert_obj_ent(e.target.closest('.'+cls))
           insert_obj_ent(node_id)
 	  break
 	case 'yaml-arr-elt':
-	  //insert_arr_elt(e.target.closest('.'+cls))
           insert_arr_elt( node_id )
 	  break
 	default:
@@ -225,7 +172,7 @@ function edit_control_setup () {
           $(n).find("span[class$='control']")
             .each( edit_control_setup )
           $(n).find("select")
-            .off('change')
+            .off('change') // make sure there is only one handler (a kludge)
             .change( function (e) {
               $(e.target).closest('div[class^="yaml"]').each(do_select)
             })
@@ -335,6 +282,58 @@ function push_to_undo(action, elt) {
 
 
 // deprec
+function replace_select () {
+  let value = this.value;
+  let container = $(this).parent().first()
+  let new_elt=null
+
+  if (container.hasClass('yaml-obj-val')) {
+    switch (value) {
+    case 'scalar':
+      new_elt=create_obj_val(indent, $('<input class="yaml-ptext yaml-scalar" value="">'))
+      break
+    case 'array':
+      new_elt=create_obj_val(indent, create_arr(indent))
+      break
+    case 'object':
+      new_elt=create_obj_val(indent, create_obj(indent))
+      break
+    }
+  }
+  else if (container.hasClass('yaml-arr-elt')) {
+    switch (value) {
+    case 'scalar':
+      new_elt=create_arr_elt(indent, $('<input class="yaml-ptext yaml-scalar" value="">'))
+      break
+    case 'array':
+      new_elt=create_arr_elt(indent, create_arr(indent))
+      break
+    case 'object':
+      new_elt=create_arr_elt(indent, create_obj(indent))
+      break
+    }
+  }
+  let marker = push_to_undo('deletion',container);
+  container.detach()
+  switch (marker.action) {
+  case 'before':
+    new_elt.insertBefore(marker.marked)
+    break
+  case 'after':
+    new_elt.insertAfter(marker.marked)
+    break
+  case 'append':
+    new_elt.appendTo(marker.marked)
+    break
+  default:
+    1
+  }
+  if (value == 'scalar') {
+    new_elt.find('input').trigger('focus')
+  }
+  push_to_undo('creation',new_elt)
+  return true
+}
 
 function parse_dom() {
   return visit($(document).find('.yaml'))

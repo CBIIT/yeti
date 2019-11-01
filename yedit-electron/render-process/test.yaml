@@ -19,6 +19,16 @@ yellow:
     - rose
     - violette
     - brun
+    -
+      - 1
+      - 2
+      - 3
+    - rouge
+    -
+      map: as
+      map2: array
+      map3: elt
+
 # PAIR n1 n0 red
 # PAIR n2 n0 blue
 # PAIR n3 n0 yellow
