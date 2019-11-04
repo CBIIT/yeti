@@ -102,18 +102,15 @@ function hider (e) {
   e.stopPropagation()
   let tgt = e.target
   let hid = tgt.closest(".yaml-obj-ent").querySelector(".yaml-obj-val")
-  let stat = tgt.closest(".yaml-obj-ent").querySelector(".yaml-status")
-  console.log(hid, stat)
-
-  
+  let stat = tgt.closest(".yaml-obj-ent").querySelector(".yaml-obj-val-mrk")
   $(hid)
     .fadeToggle(function () {
       if ($(this).css("display") == 'none') {
-	$(stat).text(" ...") // stuff hidden here
+	$(stat).text(": ...") // stuff hidden here
           .dblclick(hider)
       }
       else {
-	$(stat).text("")
+	$(stat).text(":")
       }
     })
 }
@@ -149,7 +146,10 @@ function edit_control_setup () {
     .click( (e) => {
       e.preventDefault()
       let new_nodes = []
-      let node_id = $(e.target.closest('[data-node-id]')).attr('data-node-id')
+      let node_id = ( cls == 'yaml-obj-ent' ?
+                      $(e.target.closest('[data-node-id]')).attr('data-node-id') :
+                      // yaml-arr-elt
+                      $(e.target).parent().find('[data-node-id]').attr('data-node-id') )
       if ($(e.target).text() == "⊕") {
 	switch (cls) {
 	case 'yaml-obj-ent':
@@ -164,8 +164,20 @@ function edit_control_setup () {
       }
       else if ($(e.target).text() == "⊗") {
         $(e.target).trigger('mouseout')
-	// $(e.target).closest('.'+cls).each(delete_entity)
+        let p = ydoc.get_parent_by_id(node_id)
         ydoc.remove_node_by_id(node_id)
+        if (p.type == 'SEQ' || p.type == 'MAP') {
+          if (p.items.length == 0) {
+            console.log(p.id, "zero")
+            let pp = ydoc.get_parent_by_id(p.id)
+            ydoc.remove_node_by_id(p.id)
+            if (pp) {
+              let n = ydoc.create_node('SELECT')
+              n.parent_id = pp.id
+              pp.value = n
+            }
+          }
+        }
       }
       d3data.update_data(ydoc)
         .forEach( function (n) {
@@ -177,6 +189,12 @@ function edit_control_setup () {
               $(e.target).closest('div[class^="yaml"]').each(do_select)
             })
         })
+      // clean up kludge
+      if (!$(e.target).parent().find('[data-node-id]').length) {
+        $(e.target).parent().remove()
+      }
+
+        
     })
 }
 

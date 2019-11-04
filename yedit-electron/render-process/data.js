@@ -41,8 +41,8 @@ function render_data(ydoc) {
       .each( function () {
         let cls = this.closest('div[data-node-id]').className
         if (cls.includes('yaml-obj-ent'))
-          this.className = 'yaml-obj-val'
-        else if (cls.includes('yaml-arr-elt'))
+          this.className = 'yaml-obj-val insert-here'
+        else if (cls.includes('yaml-arr-elt insert-here'))
           this.className = 'yaml-arr-elt-val'
       } )
       .selectAll(`div[data-node-id=${d.id}`) // this one doesn't yet
@@ -79,6 +79,7 @@ function update_data(ydoc) {
     .data(ydoc.order, d => { return d.id })
     .join(
       enter => {
+        console.log("enter", enter)
         enter
           .each(
             function (d) {
@@ -100,14 +101,28 @@ function update_data(ydoc) {
                     // from the parent MAP down to the PAIR - yaml-obj-ent
                     // -- this is not desired, want 'node' to preserve
                     // the data already assigned to it in create_node_from_yaml
-                    d3.selectAll(`div[data-node-id='${d.parent_id}'`)
-                      .insert( ()=>{return node}, () => { return sib } )
+                    // d3.selectAll(`div[data-node-id='${d.parent_id}'`)
+                    if (node.className.includes('yaml-arr-elt')) {
+                      sib.closest('.insert-here').insertBefore(node, sib.closest('.yaml-arr-elt'))
+                    }
+                    else {
+                      sib.parentNode.insertBefore(node, sib)
+                    }
+
                     // kludge it by resetting .__data__,
                     // although this is done in create_from_yaml_node
                   })
               }
               else {
                 d3.selectAll(`div[data-node-id='${d.parent_id}'`)
+                  .select('.insert-here')
+                  .each( function () {
+                    let cls = this.closest('div[data-node-id]').className
+                    if (cls.includes('yaml-obj-ent'))
+                      this.className = 'yaml-obj-val insert-here'
+                    else if (cls.includes('yaml-arr-elt'))
+                      this.className = 'yaml-arr-elt-val insert-here'
+                  } )
                   .append(() => {return node})
                 // kludge it by resetting .__data__,
                 // although this is done in create_from_yaml_node
@@ -120,6 +135,7 @@ function update_data(ydoc) {
       },
       update => { return },
       exit => {
+        console.log("exit", exit)
         exit
           .filter(":not([data-node-id='container'])")
           .remove()
@@ -127,7 +143,6 @@ function update_data(ydoc) {
     )
   return new_nodes
 }
-
 
 function create_from_yaml_node(d, parentType) {
   elt = document.createElement("div")
@@ -191,9 +206,8 @@ function create_from_yaml_node(d, parentType) {
       break
     case 'PAIR':
       elt.setAttribute('class','yaml-scalar')
-      elt.innerHTML = '<span class="insert-here">'+
-        d.value == 'SELECT' ? sel :
-        `<input class="yaml-ptext" value="${d.value}">` + '</span>'
+      elt.innerHTML = (d.value == 'SELECT' ? sel :
+                       `<input class="yaml-ptext" value="${d.value}">`)
       break
     default:
       console.error(`Can't handle PLAIN scalar at this position`)
