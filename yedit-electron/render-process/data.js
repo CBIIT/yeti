@@ -38,6 +38,13 @@ function render_data(ydoc) {
   ydoc.order.forEach( (d) => {
     d3.selectAll(`div[data-node-id=${d.parent_id}`) // this one exists
       .select('.insert-here')
+      .each( function () {
+        let cls = this.closest('div[data-node-id]').className
+        if (cls.includes('yaml-obj-ent'))
+          this.className = 'yaml-obj-val'
+        else if (cls.includes('yaml-arr-elt'))
+          this.className = 'yaml-arr-elt-val'
+      } )
       .selectAll(`div[data-node-id=${d.id}`) // this one doesn't yet
       .data([d], dd => dd.id)
       .enter()
@@ -132,13 +139,13 @@ function create_from_yaml_node(d, parentType) {
       '</select>'
   switch (d.type) {
   case 'PAIR':
+    elt.setAttribute('class','yaml-obj-ent')
     elt.innerHTML =
       '<span class="yaml-obj-ent-control"></span>'+
       `<input class="yaml-obj-key" value="${d.key.value}">`+
       '<span class="yaml-obj-val-mrk">:</span>'+
-      '<span class="insert-here"></span>'+
+      '<div class="insert-here"></div>'+
       '<span class="yaml-status"></span>'
-    elt.setAttribute('class','yaml-obj-ent')
     break
   case 'SEQ':
   case 'MAP':
@@ -152,13 +159,17 @@ function create_from_yaml_node(d, parentType) {
       elt.innerHTML = '<span class="insert-here"></span>'
       break
     case 'PAIR':
-      elt.innerHTML = `<div class="yaml-obj-val"><span class="insert-here"></span></div>`
+      elt.innerHTML = '<span class="insert-here"></span>'
       break
     case 'SEQ':
-      elt.innerHTML = `<div class="yaml-arr-elt"><span class="yaml-arr-elt-mrk">-</span>`+
-        '<span class="insert-here"></span>'+
+      elt.innerHTML = '<span class="insert-here"></span>'
+      let wrap = document.createElement('div')
+      wrap.setAttribute('class', 'yaml-arr-elt')
+      wrap.innerHTML = '<span class="yaml-arr-elt-mrk">-</span>'+
         '<span class="yaml-status"></span>'+
-        '<span class="yaml-arr-elt-control"></span></div>'
+        '<span class="yaml-arr-elt-control"></span>'
+      wrap.insertBefore(elt, wrap.querySelector('.yaml-status'))
+      elt = wrap
       break
     }
     break
@@ -166,19 +177,23 @@ function create_from_yaml_node(d, parentType) {
     let scl;
     switch (parentType) {
     case 'SEQ':
-      elt.innerHTML =
-        '<span class="yaml-arr-elt-mrk">-</span>'+'<span class="insert-here">'+
-        ( d.value == 'SELECT' ? sel :
-          `<input class="yaml-ptext" value="${d.value}">`)+'</span>'+
+      elt.setAttribute('class','yaml-scalar')
+      wrap = document.createElement('div')
+      wrap.setAttribute('class', 'yaml-arr-elt')
+      wrap.innerHTML =
+        '<span class="yaml-arr-elt-mrk">-</span>'+
         '<span class="yaml-status"></span>'+
         '<span class="yaml-arr-elt-control"></span>'
-      elt.setAttribute('class','yaml-arr-elt')
+      elt.innerHTML = ( d.value == 'SELECT' ? sel :
+                        `<input class="yaml-ptext" value="${d.value}">`)
+      wrap.insertBefore(elt, wrap.querySelector('.yaml-status'))
+      elt = wrap
       break
     case 'PAIR':
+      elt.setAttribute('class','yaml-scalar')
       elt.innerHTML = '<span class="insert-here">'+
         d.value == 'SELECT' ? sel :
         `<input class="yaml-ptext" value="${d.value}">` + '</span>'
-      elt.setAttribute('class','yaml-scalar')
       break
     default:
       console.error(`Can't handle PLAIN scalar at this position`)
@@ -187,6 +202,7 @@ function create_from_yaml_node(d, parentType) {
   default:
     console.error(`Can't handle ${d.type} at this position`)
   }
+  // does following work for yaml-arr-elts?
   elt.__data__ = d
   for ( let i=0; i<elt.children.length ; i++) {
     elt.children[i].__data__ = d

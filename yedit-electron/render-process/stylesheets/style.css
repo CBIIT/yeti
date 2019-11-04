@@ -16,11 +16,12 @@ a {
 }
 .yaml-obj {
     padding-inline-start: 12px;
+    color: darkred;
 }
 .yaml-arr {
+    color: green;
     padding-inline-start: 12px;
 }
-
 .yaml-arr-elt-control {
     color: green;
     cursor: pointer;
@@ -65,12 +66,6 @@ a {
 }
 .yaml-arr-elt > .yaml-ptext {
     color: salmon;
-}
-.yaml-arr {
-    color: green;
-}
-.yaml-obj {
-    color: darkred;
 }
 .yaml-comment-mrk {
     color: blue;
