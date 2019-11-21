@@ -122,6 +122,34 @@ function instrument_ydoc(ydoc) {
       return this.get_node_by_id(p_id)
     return
   }
+  ydoc.get_next_sib_by_id = function (id) {
+    let n = this.get_node_by_id(id);
+    if (!n) {
+      console.error(`No node with id ${id}`)
+      return false
+    }
+    let p = this.get_parent_by_id(id);
+    if (!p) {
+      console.error("No sibs: root node can't have siblings")
+      return false
+    }
+    if (!p.items) {
+      console.error(`No sibs: node ${id} (type ${n.type}) can't have siblings`)
+      return false
+    }
+    let i = p.items.indexOf(n)
+    if (i<0) {
+      console.error(`Indexing error: node ${n.id} should be a child of node ${pn.id}, but isn't`)
+      return false
+    }
+    if (i == p.items.length-1) {
+      return null
+    }
+    else {
+      return p.items[i+1]
+    }
+  }
+  
   ydoc.create_node = function (...args) {
     let n = yaml.createNode(...args,true)
     this._type_ynode(n)
@@ -256,6 +284,7 @@ function instrument_ydoc(ydoc) {
   // add a scalar, array or object stub
   // to replace the cadr of a Pair or an Array element
   ydoc.stub_out = function( id, type ) {
+    console.debug("Enter ydoci:stub_out")
     let oldn = this.get_node_by_id(id)
     let pn = this.get_parent_by_id(id)
     if (pn.type != 'PAIR' && pn.type != 'SEQ') {

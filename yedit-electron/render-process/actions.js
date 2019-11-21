@@ -55,10 +55,7 @@ function yaml_doc_setup () {
 }
 
 function insert_obj_ent (sib_id) {
-  // let ent = create_obj_ent(indent)
-  //     .insertBefore($(tgt)).first()
-  // ent.find('input').trigger('focus')
-  // push_to_undo('creation', ent)
+  console.debug("Enter actions:insert_obj_ent")
   let new_node = ydoc.create_pair_node('new_key', 'SELECT')
   new_node.key.value = new_node.key.value+new_node.id
   // add to node - return sib id and "before" flag
@@ -68,9 +65,7 @@ function insert_obj_ent (sib_id) {
 }
 
 function insert_arr_elt (sib_id) {
-  // let ent = create_arr_elt(indent)
-  // ent.insertAfter($(tgt))
-  // push_to_undo('creation', ent)
+  console.debug("Enter actions:insert_arr_elt")
   let new_node = ydoc.create_node('SELECT')
   // add to node - return sib id and "before" flag
   new_node.sib_id = sib_id
@@ -164,20 +159,8 @@ function edit_control_setup () {
       }
       else if ($(e.target).text() == "⊗") {
         $(e.target).trigger('mouseout')
-        let p = ydoc.get_parent_by_id(node_id)
-        ydoc.remove_node_by_id(node_id)
-        if (p.type == 'SEQ' || p.type == 'MAP') {
-          if (p.items.length == 0) {
-            console.log(p.id, "zero")
-            let pp = ydoc.get_parent_by_id(p.id)
-            ydoc.remove_node_by_id(p.id)
-            if (pp) {
-              let n = ydoc.create_node('SELECT')
-              n.parent_id = pp.id
-              pp.value = n
-            }
-          }
-        }
+        delete_entity(node_id)
+ 
       }
       d3data.update_data(ydoc)
         .forEach( function (n) {
@@ -198,41 +181,45 @@ function edit_control_setup () {
     })
 }
 
-function delete_entity() {
-  let cls = $(this).hasClass('yaml-obj-ent') ?
-      'yaml-obj-ent' :
-      ( $(this).hasClass('yaml-arr-elt') ?
-        'yaml-arr-elt' :
-        null )
-  if (!cls)
-    return
-  let $parent = $(this).closest('.yaml-entity')
-  
-  if ($parent.children('.'+cls).length == 1) {
-//    let ind = $parent.css('padding-inline-start')
-    let marker = push_to_undo('deletion',$parent)
-    $parent.detach()
-    let sel = create_type_select(indent)
-    switch (marker.action) {
-    case 'before':
-      sel.insertBefore(marker.marked)
-      break
-    case 'after':
-      sel.insertAfter(marker.marked)
-      break
-    case 'append':
-      sel.appendTo(marker.marked)      
-      break
-    default:
-      console.error("Marked action '"+marker.action+"' unknown")
-    }
-    push_to_undo('creation', sel)
+function delete_entity(node_id) {
+  let p = ydoc.get_parent_by_id(node_id)
+  if (!p) {
+    console.error("Can't delete root element")
+    return false
   }
-  else {
-    push_to_undo('deletion',$(this))
-    $(this).detach()
+  ydoc.remove_node_by_id(node_id)
+  if (p.type == 'SEQ' || p.type == 'MAP') {
+    if (p.items.length == 0) {
+      let pp = ydoc.get_parent_by_id(p.id)
+      let sib = false
+      if (pp.type == 'SEQ' || pp.type == 'MAP') {
+        sib = ydoc.get_next_sib_by_id(p.id)
+      }
+      if (pp) {
+        ydoc.remove_node_by_id(p.id)
+        let n = ydoc.create_node('SELECT')
+        if (sib !== false) {
+          if (sib) {
+            ydoc.insert_at_id(sib.id, n, true)
+          }
+          else {
+            ydoc.append_to_id(pp.id, n, false)
+          }
+        }
+        else {
+          pp.value = n
+          n.parent_id = pp.id
+        }
+      }
+      else {
+        // the root element is empty
+        1
+      }
+    }
   }
 }
+
+////// deprec
 
 function undo() {
   if (_.isEmpty(undo_stack))

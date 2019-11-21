@@ -24,6 +24,7 @@ const _ = require('lodash')
 
 // create new document
 function render_data(ydoc) {
+  console.debug("Enter data:render_data")
   if ( ! ydoc instanceof yaml.Document ) {
     console.error( "render_data() - arg must be yaml.Document object")
     return
@@ -66,6 +67,7 @@ function render_data(ydoc) {
 
 // update current document and return list of new dom nodes
 function update_data(ydoc) {
+  console.debug("Enter data:update_data")
   let new_nodes = []
   if ( ! ydoc instanceof yaml.Document ) {
     console.error( "update_data() - arg must be yaml.Document object")
@@ -79,7 +81,6 @@ function update_data(ydoc) {
     .data(ydoc.order, d => { return d.id })
     .join(
       enter => {
-        console.log("enter", enter)
         enter
           .each(
             function (d) {
@@ -135,9 +136,13 @@ function update_data(ydoc) {
       },
       update => { return },
       exit => {
-        console.log("exit", exit)
         exit
           .filter(":not([data-node-id='container'])")
+          .each( function (d,i,n) {
+            if (this.parentNode.className.includes('yaml-arr-elt')) {
+              n[i] = this.parentNode
+            }
+          })
           .remove()
       }
     )
@@ -145,6 +150,7 @@ function update_data(ydoc) {
 }
 
 function create_from_yaml_node(d, parentType) {
+  console.debug("Enter data:create_from_yaml_node")
   elt = document.createElement("div")
   elt.setAttribute('data-node-id',d.id)
   let sel = '<select style="display:inline"><option value="">select</option>'+
