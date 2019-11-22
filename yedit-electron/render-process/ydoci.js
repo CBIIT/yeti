@@ -328,6 +328,7 @@ function instrument_ydoc(ydoc) {
     return oldn
   }
   ydoc.delete_and_replace_with_SELECT = function (node_id) {
+    console.debug("Enter ydoci:delete_and_replace_with_SELECT")
     let p = this.get_parent_by_id(node_id)
     if (!p) {
       console.error("Can't delete root element")

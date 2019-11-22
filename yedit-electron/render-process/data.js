@@ -1,4 +1,5 @@
 const d3 = require('d3')
+const $ = require('jquery')
 const yaml = require('yaml')
 console.log(__dirname, __filename)
 const ydoci = require('./ydoci.js')
@@ -167,6 +168,10 @@ function create_from_yaml_node(d, parentType) {
       '<span class="yaml-obj-val-mrk">:</span>'+
       '<div class="insert-here"></div>'+
       '<span class="yaml-status"></span>'
+    $(elt).find('input')
+      .change( function () {
+        d.key.value = $(this).val()
+      })
     break
   case 'SEQ':
   case 'MAP':
@@ -209,11 +214,20 @@ function create_from_yaml_node(d, parentType) {
                         `<input class="yaml-ptext" value="${d.value}">`)
       wrap.insertBefore(elt, wrap.querySelector('.yaml-status'))
       elt = wrap
+      $(elt).find('input')
+        .change(function () {
+          d.value = $(this).val()
+        })
+                              
       break
     case 'PAIR':
       elt.setAttribute('class','yaml-scalar')
       elt.innerHTML = (d.value == 'SELECT' ? sel :
                        `<input class="yaml-ptext" value="${d.value}">`)
+      $(elt).find('input')
+        .change( function () {
+          d.value = $(this).val()
+        })
       break
     default:
       console.error(`Can't handle PLAIN scalar at this position`)
