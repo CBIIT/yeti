@@ -327,6 +327,44 @@ function instrument_ydoc(ydoc) {
     }
     return oldn
   }
+  ydoc.delete_and_replace_with_SELECT = function (node_id) {
+    let p = this.get_parent_by_id(node_id)
+    if (!p) {
+      console.error("Can't delete root element")
+      return false
+    }
+    this.remove_node_by_id(node_id)
+    if (p.type == 'SEQ' || p.type == 'MAP') {
+      if (p.items.length == 0) {
+        let pp = this.get_parent_by_id(p.id)
+        let sib = false
+        if (pp.type == 'SEQ' || pp.type == 'MAP') {
+          sib = this.get_next_sib_by_id(p.id)
+        }
+        if (pp) {
+          this.remove_node_by_id(p.id)
+          let n = this.create_node('SELECT')
+          if (sib !== false) {
+            if (sib) {
+              this.insert_at_id(sib.id, n, true)
+            }
+            else {
+              this.append_to_id(pp.id, n, false)
+            }
+          }
+          else {
+            pp.value = n
+            n.parent_id = pp.id
+          }
+        }
+        else {
+          // the root element is empty
+          1
+        }
+      }
+    }
+    return true
+  }
 }
 
 exports.instrument_ydoc=instrument_ydoc

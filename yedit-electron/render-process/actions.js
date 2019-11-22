@@ -159,7 +159,7 @@ function edit_control_setup () {
       }
       else if ($(e.target).text() == "⊗") {
         $(e.target).trigger('mouseout')
-        delete_entity(node_id)
+        ydoc.delete_and_replace_with_SELECT(node_id)
  
       }
       d3data.update_data(ydoc)
@@ -181,43 +181,6 @@ function edit_control_setup () {
     })
 }
 
-function delete_entity(node_id) {
-  let p = ydoc.get_parent_by_id(node_id)
-  if (!p) {
-    console.error("Can't delete root element")
-    return false
-  }
-  ydoc.remove_node_by_id(node_id)
-  if (p.type == 'SEQ' || p.type == 'MAP') {
-    if (p.items.length == 0) {
-      let pp = ydoc.get_parent_by_id(p.id)
-      let sib = false
-      if (pp.type == 'SEQ' || pp.type == 'MAP') {
-        sib = ydoc.get_next_sib_by_id(p.id)
-      }
-      if (pp) {
-        ydoc.remove_node_by_id(p.id)
-        let n = ydoc.create_node('SELECT')
-        if (sib !== false) {
-          if (sib) {
-            ydoc.insert_at_id(sib.id, n, true)
-          }
-          else {
-            ydoc.append_to_id(pp.id, n, false)
-          }
-        }
-        else {
-          pp.value = n
-          n.parent_id = pp.id
-        }
-      }
-      else {
-        // the root element is empty
-        1
-      }
-    }
-  }
-}
 
 ////// deprec
 
