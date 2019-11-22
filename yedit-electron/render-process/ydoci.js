@@ -330,12 +330,13 @@ function instrument_ydoc(ydoc) {
   ydoc.delete_and_replace_with_SELECT = function (node_id) {
     console.debug("Enter ydoci:delete_and_replace_with_SELECT")
     let p = this.get_parent_by_id(node_id)
+    let ntype = this.get_node_by_id(node_id).type
     if (!p) {
       console.error("Can't delete root element")
       return false
     }
     this.remove_node_by_id(node_id)
-    if (p.type == 'SEQ' || p.type == 'MAP') {
+     if (p.type == 'SEQ' || p.type == 'MAP') {
       if (p.items.length == 0) {
         let pp = this.get_parent_by_id(p.id)
         let sib = false
@@ -363,7 +364,13 @@ function instrument_ydoc(ydoc) {
           1
         }
       }
+
     }
+    else if (p.type == 'PAIR' && ntype == 'PLAIN') {
+      let n = this.create_node('SELECT')
+      p.value = n
+      n.parent_id = p.id
+    }    
     return true
   }
 }

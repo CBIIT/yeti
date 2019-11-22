@@ -44,6 +44,8 @@ function yaml_doc_setup () {
     .each( edit_control_setup )
   $(".yaml-arr-elt-control")
     .each( edit_control_setup )
+  $(".yaml-scalar-value-ctl")
+    .each( scalar_control_setup )
   $(document).on("keydown", function (e) {
     if (e.key == 'z' && (e.metaKey || e.ctrlKey)) {
       if (!$( document.activeElement ).is("input")) {
@@ -84,6 +86,8 @@ function do_select () {
     .forEach( function (n) {
       $(n).find("span[class$='control']")
         .each( edit_control_setup )
+      $(n).find("span[class$='scalar-value-ctl']")
+        .each( scalar_control_setup )
       $(n).find("select")
         .off('change')
         .change( function (e) {
@@ -181,6 +185,24 @@ function edit_control_setup () {
     })
 }
 
+function scalar_control_setup() {
+  $(this)
+    .text("⊗")
+    .off('click')
+    .click( (e) => {
+      e.preventDefault()
+      let node_id = $(e.target.closest('[data-node-id]')).attr('data-node-id')
+      ydoc.delete_and_replace_with_SELECT(node_id)
+      d3data.update_data(ydoc)
+        .forEach( function (n) {
+          $(n).find("select")
+            .off('change') // make sure there is only one handler (a kludge)
+            .change( function (e) {
+              $(e.target).closest('div[class^="yaml"]').each(do_select)
+            })
+        })
+    })
+}
 
 ////// deprec
 

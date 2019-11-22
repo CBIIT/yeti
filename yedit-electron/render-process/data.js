@@ -223,7 +223,7 @@ function create_from_yaml_node(d, parentType) {
     case 'PAIR':
       elt.setAttribute('class','yaml-scalar')
       elt.innerHTML = (d.value == 'SELECT' ? sel :
-                       `<input class="yaml-ptext" value="${d.value}">`)
+                       `<input class="yaml-ptext" value="${d.value}"><span class="yaml-scalar-value-ctl"></span>`)
       $(elt).find('input')
         .change( function () {
           d.value = $(this).val()
