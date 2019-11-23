@@ -180,6 +180,8 @@ function instrument_ydoc(ydoc) {
   ydoc.index_node = function (node) { this._index_ynode_ids(node) }
   ydoc.remove_node_by_id = function (id) {
     let n=this.get_node_by_id(id) ;
+    let undo_this=[]
+    let doc = this
     if (!n) return ;
     let child_ids=[id]
     this.__walk(n, (nn) => {
@@ -192,25 +194,33 @@ function instrument_ydoc(ydoc) {
     }
     let pn = this.get_parent_by_id(id)
     if (n.type=='PAIR') {
-      n.parent_id=null
+      let i = pn.items.indexOf(n);
+      // n.parent_id=null
+      undo_this.push([n,i])
       pn.delete(n.key) // n.key may be plain scalar, look out
     }
     else if (pn.type == 'SEQ') {
       let i = pn.items.indexOf(n);
-      n.parent_id=null
+      // n.parent_id=null
+      undo_this.push( () => { pn.items.splice(i,n) } )
       pn.delete(i)
     }
     child_ids.forEach( (cid) => {
       let i_d = this.order.findIndex( (n) => { return n.id == cid } )
+      let nd = this.order[i_d]
       if (i_d >= 0) {
         this.order.splice(i_d,1)
+        undo_this.push( () => { doc.order.splice(i_d, 0, nd) } )
       }
       delete this.index[cid]
+      undo_this.push( () => { doc.index[cid] = nd } )
     } )
+    this._undo_stack.push(undo_this)
     return true
   }
   ydoc.insert_at_id = function(id,node,before) {
     let n=this.get_node_by_id(id)
+    let undo_this = []
     if (!n) {
       console.error(`No node with id ${id}`)
       return false
@@ -245,21 +255,26 @@ function instrument_ydoc(ydoc) {
     if (before) {
       node.sib_id=pn.items[i].id
       pn.items.splice(i,0,node)
+      undo_this.push( () => { pn.items.splice(i,1) })
     }
     else {
       if (i == pn.items.length-1) {
         node.sib_id = null
         pn.items.splice(pn.items.length,0,node)
+        undo_this.push( () => { pn.items.splice(pn.items.length,1) } )
       }
       else {
         node.sib_id=pn.items[i+1].id
         pn.items.splice(i+1,0,node)
+        undo_this.push( () => { pn.items.splice(i+1,1) } )
       }
     }
+    this._undo_stack.push( undo_this )
     return true
   }
   ydoc.append_to_id = function(id,node,prepend) {
     let n = this.get_node_by_id(id)
+    let undo_this = []
     if (!n || !node) {
       console.error(`No node with id ${id}`)
       return false
@@ -278,11 +293,14 @@ function instrument_ydoc(ydoc) {
     }
     if (prepend) {
       n.items.splice(0,0,node)
+      undo_this.push( () => { n.items.splice(0,1) } )
     }
     else {
       n.items.splice(n.items.length,0,node)
+      undo_this.push( () => { n.items.splice(n.items.length,1) } )
     }
     node.parent_id = n.id
+    this._undo_stack.push(undo_this)
     return true
   }
   // add a scalar, array or object stub
@@ -291,6 +309,8 @@ function instrument_ydoc(ydoc) {
     console.debug("Enter ydoci:stub_out")
     let oldn = this.get_node_by_id(id)
     let pn = this.get_parent_by_id(id)
+    let doc = this
+    let undo_this = []
     if (pn.type != 'PAIR' && pn.type != 'SEQ') {
       console.error('can only create stub from a Pair value or an Array element')
       return false
@@ -313,26 +333,34 @@ function instrument_ydoc(ydoc) {
     switch (pn.type) {
     case 'PAIR':
       pn.value = newn
+      undo_this.push( () => { pn.value = oldn } )
       newn.parent_id = pn.id
       // clean up index
       let i_d = this.order.findIndex( (n) => { return n.id == id } )
+      let nd = this.order[i_d]
       if (i_d >= 0) {
         this.order.splice(i_d,1)
+        undo_this.push( () => { doc.order.splice(i_d, 0, nd) } )
       }
       delete this.index[id]
+      undo_this.push( () => { doc.index[id] = oldn } )
       break
     case 'SEQ':
       this.insert_at_id(id,newn,true)
+      undo_this = undo_this.concat(this._undo_stack.pop())
       this.remove_node_by_id(id)
+      undo_this = undo_this.concat(this._undo_stack.pop())
       break
     default:
       console.error("Shouldn't be here")
       return false
     }
+    this._undo_stack.push(undo_this)
     return oldn
   }
   ydoc.delete_and_replace_with_SELECT = function (node_id) {
     console.debug("Enter ydoci:delete_and_replace_with_SELECT")
+    let undo_this = []
     let p = this.get_parent_by_id(node_id)
     let ntype = this.get_node_by_id(node_id).type
     if (!p) {
@@ -340,7 +368,8 @@ function instrument_ydoc(ydoc) {
       return false
     }
     this.remove_node_by_id(node_id)
-     if (p.type == 'SEQ' || p.type == 'MAP') {
+    undo_this = undo_this.concat(this._undo_stack.pop())
+    if (p.type == 'SEQ' || p.type == 'MAP') {
       if (p.items.length == 0) {
         let pp = this.get_parent_by_id(p.id)
         let sib = false
@@ -357,9 +386,12 @@ function instrument_ydoc(ydoc) {
             else {
               this.append_to_id(pp.id, n, false)
             }
+            undo_this = undo_this.concat(this._undo_stack.pop())            
           }
           else {
+            let oldn = n
             pp.value = n
+            undo_this.push( () => { pp.value = oldn } )
             n.parent_id = pp.id
           }
         }
@@ -372,9 +404,12 @@ function instrument_ydoc(ydoc) {
     }
     else if (p.type == 'PAIR' && ntype == 'PLAIN') {
       let n = this.create_node('SELECT')
+      let oldn = n
       p.value = n
+      undo_this.push( () => { p.value = oldn } )
       n.parent_id = p.id
-    }    
+    }
+    this._undo_stack.push(undo_this)
     return true
   }
 }
