@@ -9,12 +9,14 @@ const ytypes = require('yaml/types')
 // remove_node_by_id(id) - remove node 'id' from document
 // append_to_id(id, node, [prepend]) - append/prepend a node to a MAP or SEQ of 'id'
 // insert_at_id(id, node, [before])  - insert after/before node 'id' as a sibling in a MAP or SEQ
+// delete_and_replace_with_SELECT(node_id) - delete the node - if the node is the last item of a containing node (MAP/SEQ),
+//  replace the containing item with a scalar node with value 'SELECT'; also replace a scalar value of a PAIR with 'SELECT'
 // stub_out(id, type) -add a scalar, array or object stub to replace the value of a Pair or an Array element
 
 //
 // __walk(pnode, function, first) - apply function to each node, starting at and including pnode
 //                                - (call as ydoc.__walk(pnode, function, true))
-
+var max_undo = 10;
 function instrument_ydoc(ydoc) {
   function* idgen() {
     i = 0;
@@ -24,6 +26,7 @@ function instrument_ydoc(ydoc) {
     }
   }
   ydoc.instrumented = true
+  ydoc._undo_stack = []
   ydoc._idgen = idgen()
   ydoc.__children = function (n) {
     switch (n.type) {
@@ -105,6 +108,7 @@ function instrument_ydoc(ydoc) {
   ydoc._set_parent_ids(ydoc.contents)
   ydoc.contents.parent_id='container'
   ydoc._index_ynode_ids(ydoc.contents)
+  
   ydoc.get_node_by_id = function (id) {
     if (!this.index[id]) {
       console.error(`No node with id ${id}`)
