@@ -334,18 +334,11 @@ function instrument_ydoc(ydoc) {
     }
     switch (pn.type) {
     case 'PAIR':
+      this.remove_node_by_id(id)
+      undo_this = undo_this.concat(this._undo_stack.pop())
       pn.value = newn
-      undo_this.push( () => { pn.value = oldn } )
       newn.parent_id = pn.id
-      // clean up index
-      let i_d = this.order.findIndex( (n) => { return n.id == id } )
-      let nd = this.order[i_d]
-      if (i_d >= 0) {
-        this.order.splice(i_d,1)
-        undo_this.push( () => { doc.order.splice(i_d, 0, nd) } )
-      }
-      delete this.index[id]
-      undo_this.push( () => { doc.index[id] = oldn } )
+      undo_this.push( () => { doc.remove_node_by_id(newn.id,true) } )
       break
     case 'SEQ':
       this.insert_at_id(id,newn,true)

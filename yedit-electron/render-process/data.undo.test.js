@@ -178,3 +178,107 @@ test('prepend scalar to gelb (PLAIN to SEQ) and undo', () => {
   expect( yd.get_node_by_id(nod.id) ).toBeFalsy() // removed  
 })
 
+test('stub scalar at kopf (value of PAIR) and undo', () => {
+  let pn = yd.get_parent_by_id('n28')
+  let oldn;
+  expect(pn.type).toBe('PAIR')
+  expect(yd.get_node_by_id('n28').value).toBe('kopf')
+  expect(oldn = yd.stub_out('n28','scalar')).toBeTruthy()
+  expect(oldn.value).toBe('kopf')
+  let newid = pn.value.id;
+  expect(pn.value.value).toBe('new_value')
+  expect(yd.index['n28']).toBeFalsy()
+  expect(yd.index[newid]).toBeTruthy()
+  expect( yd.undo() ).toBeTruthy()
+  expect(yd.index['n28']).toBeTruthy() // restored
+  expect(yd.index['n28'].value).toBe('kopf') // restored
+  expect(yd.index[newid]).toBeFalsy() // removed
+})
+
+test('stub array at kopf (value of PAIR) and undo', () => {
+  let oldn, newid;
+  pn = yd.get_parent_by_id('n28')
+  expect(yd.get_node_by_id('n28').value).toBe('kopf')
+  expect(oldn = yd.stub_out('n28','array')).toBeTruthy()
+  expect(oldn.value).toBe('kopf')
+  expect(pn.value.type).toBe('SEQ')
+  newid = pn.value.id
+  expect(pn.value.items[0].value).toBe('SELECT')
+  expect(yd.index['n28']).toBeFalsy()
+  expect( yd.undo() ).toBeTruthy()
+  expect(yd.index['n28']).toBeTruthy() // restored
+  expect(yd.index['n28'].value).toBe('kopf') // restored
+  expect(yd.index[newid]).toBeFalsy() // removed
+})
+
+test('stub object at kopf (value of PAIR) and undo', () => {
+  let pn = yd.get_parent_by_id('n28')
+  let oldn, newid;
+  expect(pn.type).toBe('PAIR')
+  expect(oldn = yd.stub_out('n28','object')).toBeTruthy()
+  newid = pn.value.id
+  expect(pn.value.type).toBe('MAP')
+  expect(pn.value.items[0].key.value).toBe('new_key')
+  expect(pn.value.items[0].value.value).toBe('SELECT')
+  expect(yd.index['n28']).toBeFalsy()
+  expect( yd.undo() ).toBeTruthy()
+  expect(yd.index['n28']).toBeTruthy() // restored
+  expect(yd.index['n28'].value).toBe('kopf') // restored
+  expect(yd.index[newid]).toBeFalsy() // removed
+})
+
+test('stub scalar at c (element of SEQ) and undo', () => {
+  let pn = yd.get_parent_by_id('n12')
+  let oldn, newid
+  expect(pn.type).toBe('SEQ')
+  expect(yd.index['n12']).toBeTruthy()
+  expect(yd.get_node_by_id('n12').value).toBe('c')
+  let oldi = pn.items.findIndex( (n) => { return n.value == 'c' } )
+  expect(oldn = yd.stub_out('n12','scalar')).toBeTruthy()
+  expect(oldn.value).toBe('c')
+  expect( pn.items.findIndex( (n) => { return n.value == 'new_value' } ) ).toBe(oldi)
+  newid = pn.items[oldi].id
+  expect(yd.index[newid]).toBeTruthy()
+  expect(yd.index['n12']).toBeFalsy()
+  expect( yd.undo() ).toBeTruthy()
+  expect(yd.index['n12']).toBeTruthy() // restored
+  expect(yd.index['n12'].value).toBe('c') // restored
+  expect(yd.index[newid]).toBeFalsy() // removed
+})
+
+test('stub array at old c (element of SEQ)', () => {
+  let pn = yd.get_parent_by_id('n12')
+  let oldn, newid
+  expect(pn.type).toBe('SEQ')
+  expect(yd.index['n12']).toBeTruthy()
+  let oldi = pn.items.findIndex( (n) => { return n.id == 'n12' } )
+  expect(oldn = yd.stub_out('n12','array')).toBeTruthy()
+  expect(oldn.value).toBe('c')
+  expect( pn.items.findIndex( (n) => { return n.type == 'SEQ' } ) ).toBe(oldi)
+  newid = pn.items[oldi].id
+  expect(yd.index[newid]).toBeTruthy()
+  expect(yd.index['n12']).toBeFalsy()
+  expect( yd.undo() ).toBeTruthy()
+  expect(yd.index['n12']).toBeTruthy() // restored
+  expect(yd.index['n12'].value).toBe('c') // restored
+  expect(yd.index[newid]).toBeFalsy() // removed
+})
+
+test('stub object at old c (element of SEQ)', () => {
+  let pn = yd.get_parent_by_id('n12')
+  let oldn, newid
+  expect(pn.type).toBe('SEQ')
+  expect(yd.index['n12']).toBeTruthy()
+  let oldi = pn.items.findIndex( (n) => { return n.id == 'n12' } )
+  expect(oldn = yd.stub_out('n12','object')).toBeTruthy()
+  expect(oldn.value).toBe('c')
+  expect( pn.items.findIndex( (n) => { return n.type == 'MAP' && n.items[0].value == 'SELECT' } ) ).toBe(oldi)
+  newid = pn.items[oldi].id
+  expect(yd.index[newid]).toBeTruthy()
+  expect(yd.index['n12']).toBeFalsy()
+  expect( yd.undo() ).toBeTruthy()
+  expect(yd.index['n12']).toBeTruthy() // restored
+  expect(yd.index['n12'].value).toBe('c') // restored
+  expect(yd.index[newid]).toBeFalsy() // removed
+})
+
