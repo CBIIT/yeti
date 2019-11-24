@@ -178,7 +178,7 @@ function instrument_ydoc(ydoc) {
   }
     
   ydoc.index_node = function (node) { this._index_ynode_ids(node) }
-  ydoc.remove_node_by_id = function (id) {
+  ydoc.remove_node_by_id = function (id,no_undo) {
     let n=this.get_node_by_id(id) ;
     let undo_this=[]
     let doc = this
@@ -196,13 +196,13 @@ function instrument_ydoc(ydoc) {
     if (n.type=='PAIR') {
       let i = pn.items.indexOf(n);
       // n.parent_id=null
-      undo_this.push([n,i])
       pn.delete(n.key) // n.key may be plain scalar, look out
+      undo_this.push( () => { pn.items.splice(i,0,n) } )
     }
     else if (pn.type == 'SEQ') {
       let i = pn.items.indexOf(n);
       // n.parent_id=null
-      undo_this.push( () => { pn.items.splice(i,n) } )
+      undo_this.push( () => { pn.items.splice(i,0,n) } )
       pn.delete(i)
     }
     child_ids.forEach( (cid) => {
@@ -215,11 +215,12 @@ function instrument_ydoc(ydoc) {
       delete this.index[cid]
       undo_this.push( () => { doc.index[cid] = nd } )
     } )
-    this._undo_stack.push(undo_this)
+    if (!no_undo) this._undo_stack.push(undo_this)
     return true
   }
   ydoc.insert_at_id = function(id,node,before) {
     let n=this.get_node_by_id(id)
+    let doc = this
     let undo_this = []
     if (!n) {
       console.error(`No node with id ${id}`)
@@ -255,18 +256,18 @@ function instrument_ydoc(ydoc) {
     if (before) {
       node.sib_id=pn.items[i].id
       pn.items.splice(i,0,node)
-      undo_this.push( () => { pn.items.splice(i,1) })
+      undo_this.push( () => { doc.remove_node_by_id(node.id, true) })
     }
     else {
       if (i == pn.items.length-1) {
         node.sib_id = null
         pn.items.splice(pn.items.length,0,node)
-        undo_this.push( () => { pn.items.splice(pn.items.length,1) } )
+        undo_this.push( () => { doc.remove_node_by_id(node.id, true) })
       }
       else {
         node.sib_id=pn.items[i+1].id
         pn.items.splice(i+1,0,node)
-        undo_this.push( () => { pn.items.splice(i+1,1) } )
+        undo_this.push( () => { doc.remove_node_by_id(node.id, true) })
       }
     }
     this._undo_stack.push( undo_this )
@@ -274,6 +275,7 @@ function instrument_ydoc(ydoc) {
   }
   ydoc.append_to_id = function(id,node,prepend) {
     let n = this.get_node_by_id(id)
+    let doc = this
     let undo_this = []
     if (!n || !node) {
       console.error(`No node with id ${id}`)
@@ -293,11 +295,11 @@ function instrument_ydoc(ydoc) {
     }
     if (prepend) {
       n.items.splice(0,0,node)
-      undo_this.push( () => { n.items.splice(0,1) } )
+      undo_this.push( () => { doc.remove_node_by_id(node.id, true) })
     }
     else {
       n.items.splice(n.items.length,0,node)
-      undo_this.push( () => { n.items.splice(n.items.length,1) } )
+      undo_this.push( () => { doc.remove_node_by_id(node.id, true) })
     }
     node.parent_id = n.id
     this._undo_stack.push(undo_this)
@@ -410,6 +412,13 @@ function instrument_ydoc(ydoc) {
       n.parent_id = p.id
     }
     this._undo_stack.push(undo_this)
+    return true
+  }
+  ydoc.undo = function () {
+    let l = ydoc._undo_stack.pop()
+    l.reverse().forEach( (f) => { f() } )
+    // reindex
+    // this._index_ynode_ids(this.contents)
     return true
   }
 }
