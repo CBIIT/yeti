@@ -295,10 +295,3 @@ test('stub object at old c (element of SEQ)', () => {
   expect(yd.index[id]).toBeFalsy()
 })
 
-
-
-
-test('print it', () => {
-  console.log(yd.toString())
-  expect(1).toBeTruthy()
-})

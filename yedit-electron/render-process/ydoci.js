@@ -338,7 +338,7 @@ function instrument_ydoc(ydoc) {
       undo_this = undo_this.concat(this._undo_stack.pop())
       pn.value = newn
       newn.parent_id = pn.id
-      undo_this.push( () => { doc.remove_node_by_id(newn.id,true) } )
+      undo_this.push( () => { doc.remove_node_by_id(newn.id,true) ; pn.value = oldn } )
       break
     case 'SEQ':
       this.insert_at_id(id,newn,true)
@@ -356,14 +356,16 @@ function instrument_ydoc(ydoc) {
   ydoc.delete_and_replace_with_SELECT = function (node_id) {
     console.debug("Enter ydoci:delete_and_replace_with_SELECT")
     let undo_this = []
+    let doc = this
+    let oldn = this.get_node_by_id(node_id)
     let p = this.get_parent_by_id(node_id)
-    let ntype = this.get_node_by_id(node_id).type
+    let ntype = oldn.type
     if (!p) {
       console.error("Can't delete root element")
       return false
     }
     this.remove_node_by_id(node_id)
-    undo_this = undo_this.concat(this._undo_stack.pop())
+    undo_this.push(this._undo_stack.pop())
     if (p.type == 'SEQ' || p.type == 'MAP') {
       if (p.items.length == 0) {
         let pp = this.get_parent_by_id(p.id)
@@ -373,6 +375,7 @@ function instrument_ydoc(ydoc) {
         }
         if (pp) {
           this.remove_node_by_id(p.id)
+          undo_this.push(this._undo_stack.pop())
           let n = this.create_node('SELECT')
           if (sib !== false) {
             if (sib) {
@@ -381,12 +384,14 @@ function instrument_ydoc(ydoc) {
             else {
               this.append_to_id(pp.id, n, false)
             }
-            undo_this = undo_this.concat(this._undo_stack.pop())            
+            undo_this = undo_this.concat(this._undo_stack.pop())
           }
           else {
-            let oldn = n
             pp.value = n
-            undo_this.push( () => { pp.value = oldn } )
+            undo_this.push( () => {
+              doc.remove_node_by_id(n.id,true)
+              pp.value = p
+            })
             n.parent_id = pp.id
           }
         }
@@ -399,17 +404,23 @@ function instrument_ydoc(ydoc) {
     }
     else if (p.type == 'PAIR' && ntype == 'PLAIN') {
       let n = this.create_node('SELECT')
-      let oldn = n
       p.value = n
-      undo_this.push( () => { p.value = oldn } )
+      undo_this.push( () => { doc.remove_node_by_id(n.id,true) ; p.value = oldn } )
       n.parent_id = p.id
     }
     this._undo_stack.push(undo_this)
     return true
   }
   ydoc.undo = function () {
+    console.debug("Enter ydoci:undo")
     let l = ydoc._undo_stack.pop()
-    l.reverse().forEach( (f) => { f() } )
+    if (!l) return false
+    l.reverse().forEach( (f) => {
+      if (f instanceof Array) {
+        f.reverse().forEach( (ff) => { ff() } )
+      }
+      else f()
+    } )
     // reindex
     // this._index_ynode_ids(this.contents)
     return true

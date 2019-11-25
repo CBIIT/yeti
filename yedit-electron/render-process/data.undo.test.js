@@ -6,6 +6,7 @@ const ydoci = require('./ydoci.js')
 yf = fs.readFileSync('test.yaml','utf-8')
 yd = yaml.parseDocument(yf)
 ydoci.instrument_ydoc(yd)
+org_json = yd.toJSON()
 
 // get_node_by_id
 // create_node
@@ -68,6 +69,7 @@ test('remove violette node (mbr of SEQ) and undo', () => {
   expect(yd.undo()).toBeTruthy()
   expect(yd.get_node_by_id('n33')).toBeTruthy()
   expect(yd.get_parent_by_id('n34').get(1)).toBe('violette')
+  expect(yd.undo()).toBeFalsy()
 })
 
 test('remove yellow node (PAIR of MAP) and undo', () => {
@@ -79,6 +81,7 @@ test('remove yellow node (PAIR of MAP) and undo', () => {
   expect( yd.get_node_by_id('n3')).toBeTruthy() // restored
   expect( yd.get_node_by_id('n3').key.value ).toBe('yellow') // restored
   expect( yd.get_node_by_id('n30')).toBeTruthy() // 'bleu' node child restored
+  expect(yd.undo()).toBeFalsy()
 })
 
 test('insert node before azul/b and undo', () => {
@@ -91,6 +94,7 @@ test('insert node before azul/b and undo', () => {
   expect( yd.undo() ).toBeTruthy()
   expect( at.get(1) ).toBe('b') // restored
   expect( yd.get_node_by_id(nod.id) ).toBeFalsy() // removed
+  expect(yd.undo()).toBeFalsy()
 })
 
 test('insert node before azul/a and undo', () => {
@@ -104,6 +108,7 @@ test('insert node before azul/a and undo', () => {
   expect( yd.undo() ).toBeTruthy()
   expect( at.get(0) ).toBe('a') // restored
   expect( yd.get_node_by_id(nod.id) ).toBeFalsy() // removed  
+  expect(yd.undo()).toBeFalsy()
 })
 
 test('insert node after azul/a and undo', () => {
@@ -117,6 +122,7 @@ test('insert node after azul/a and undo', () => {
   expect( at.get(0) ).toBe('a')
   expect( yd.get_parent_by_id('n6').getIn(['azul',1])).toBe('b') 
   expect( yd.get_node_by_id(nod.id) ).toBeFalsy() // removed  
+  expect(yd.undo()).toBeFalsy()
 })
 
 test('insert pair node after amarillo and undo', () => {
@@ -134,6 +140,7 @@ test('insert pair node after amarillo and undo', () => {
   expect( yd.undo() ).toBeTruthy()
   expect( pn.get(3) ).toBeFalsy() // restored
   expect( yd.get_node_by_id(nod.id) ).toBeFalsy() // removed  
+  expect(yd.undo()).toBeFalsy()
 })
 
 
@@ -151,6 +158,7 @@ test('insert pair node before amarillo and undo', () => {
   expect( yd.undo() ).toBeTruthy()
   expect( pn.items[2].key.value ).toBe('amarillo') //restored
   expect( yd.get_node_by_id(nod.id) ).toBeFalsy() // removed  
+  expect(yd.undo()).toBeFalsy()
 })
 
 test('append pair to blue (PAIR to MAP)', () => {
@@ -164,6 +172,7 @@ test('append pair to blue (PAIR to MAP)', () => {
   expect( yd.undo() ).toBeTruthy()
   expect( ato.value.items[ato.value.items.length-1].key.value ).toEqual( 'gelb' ) //restored
   expect( yd.get_node_by_id(nod.id) ).toBeFalsy() // removed  
+  expect(yd.undo()).toBeFalsy()
 })
 
 test('prepend scalar to gelb (PLAIN to SEQ) and undo', () => {
@@ -176,11 +185,13 @@ test('prepend scalar to gelb (PLAIN to SEQ) and undo', () => {
   expect( yd.undo() ).toBeTruthy()
   expect( ato.value.items[0].toJSON() ).toMatchObject( { gruen:7,braun:8 } ) // restored
   expect( yd.get_node_by_id(nod.id) ).toBeFalsy() // removed  
+  expect(yd.undo()).toBeFalsy()
 })
 
 test('stub scalar at kopf (value of PAIR) and undo', () => {
   let pn = yd.get_parent_by_id('n28')
   let oldn;
+  console.log('before',yd.toString())
   expect(pn.type).toBe('PAIR')
   expect(yd.get_node_by_id('n28').value).toBe('kopf')
   expect(oldn = yd.stub_out('n28','scalar')).toBeTruthy()
@@ -193,6 +204,8 @@ test('stub scalar at kopf (value of PAIR) and undo', () => {
   expect(yd.index['n28']).toBeTruthy() // restored
   expect(yd.index['n28'].value).toBe('kopf') // restored
   expect(yd.index[newid]).toBeFalsy() // removed
+  expect(yd.toJSON()).toMatchObject(org_json)  
+  expect(yd.undo()).toBeFalsy()
 })
 
 test('stub array at kopf (value of PAIR) and undo', () => {
@@ -209,6 +222,8 @@ test('stub array at kopf (value of PAIR) and undo', () => {
   expect(yd.index['n28']).toBeTruthy() // restored
   expect(yd.index['n28'].value).toBe('kopf') // restored
   expect(yd.index[newid]).toBeFalsy() // removed
+  expect(yd.toJSON()).toMatchObject(org_json)
+  expect(yd.undo()).toBeFalsy()  
 })
 
 test('stub object at kopf (value of PAIR) and undo', () => {
@@ -225,7 +240,11 @@ test('stub object at kopf (value of PAIR) and undo', () => {
   expect(yd.index['n28']).toBeTruthy() // restored
   expect(yd.index['n28'].value).toBe('kopf') // restored
   expect(yd.index[newid]).toBeFalsy() // removed
+  expect(yd.toJSON()).toMatchObject(org_json)
+  expect(yd.undo()).toBeFalsy()
 })
+
+
 
 test('stub scalar at c (element of SEQ) and undo', () => {
   let pn = yd.get_parent_by_id('n12')
@@ -244,6 +263,7 @@ test('stub scalar at c (element of SEQ) and undo', () => {
   expect(yd.index['n12']).toBeTruthy() // restored
   expect(yd.index['n12'].value).toBe('c') // restored
   expect(yd.index[newid]).toBeFalsy() // removed
+  expect(yd.toJSON()).toMatchObject(org_json)
 })
 
 test('stub array at old c (element of SEQ)', () => {
@@ -262,6 +282,8 @@ test('stub array at old c (element of SEQ)', () => {
   expect(yd.index['n12']).toBeTruthy() // restored
   expect(yd.index['n12'].value).toBe('c') // restored
   expect(yd.index[newid]).toBeFalsy() // removed
+  expect(yd.toJSON()).toMatchObject(org_json)
+  expect(yd.undo()).toBeFalsy()
 })
 
 test('stub object at old c (element of SEQ)', () => {
@@ -280,5 +302,61 @@ test('stub object at old c (element of SEQ)', () => {
   expect(yd.index['n12']).toBeTruthy() // restored
   expect(yd.index['n12'].value).toBe('c') // restored
   expect(yd.index[newid]).toBeFalsy() // removed
+  expect(yd.toJSON()).toMatchObject(org_json)  
+  expect(yd.undo()).toBeFalsy()
 })
 
+test('delete/replace azul/a,b,c (SEQ) and undo', () => {
+  let pn = yd.get_parent_by_id('n11')
+  let ppn = yd.get_parent_by_id(pn.id)
+  expect(ppn.key.value).toBe('azul')
+  expect(pn.items.length).toBe(3)
+  expect(yd.delete_and_replace_with_SELECT('n11')).toBeTruthy()
+  expect(pn.items.length).toBe(2)
+  expect(yd.get_node_by_id('n11')).toBeFalsy()
+  expect(yd.delete_and_replace_with_SELECT('n10')).toBeTruthy()
+  expect(pn.items.length).toBe(1)
+  expect(yd.delete_and_replace_with_SELECT('n12')).toBeTruthy()
+  expect(ppn.value.value).toBe('SELECT')
+  expect(yd.get_node_by_id(pn.id)).toBeFalsy()
+  expect(yd.undo()).toBeTruthy()
+  expect(yd.undo()).toBeTruthy()
+  expect(yd.undo()).toBeTruthy()
+  expect(yd.toJSON()).toMatchObject(org_json)
+  expect(yd.undo()).toBeFalsy()
+})
+
+test('delete/replace blue/blau,rot,gelb (MAP) and undo', () => {
+  let pn = yd.get_parent_by_id('n15')
+  let ppn = yd.get_parent_by_id(pn.id)
+  expect(ppn.key.value).toBe('blue')
+  expect(pn.items.length).toBe(3)
+  expect(yd.delete_and_replace_with_SELECT('n17')).toBeTruthy()
+  expect(pn.items.length).toBe(2)
+  expect(yd.get_node_by_id('n17')).toBeFalsy()
+  expect(yd.delete_and_replace_with_SELECT('n16')).toBeTruthy()
+  expect(pn.items.length).toBe(1)
+  expect(yd.delete_and_replace_with_SELECT('n15')).toBeTruthy()
+  expect(ppn.value.value).toBe('SELECT')
+  expect(yd.get_node_by_id(pn.id)).toBeFalsy()
+  expect(yd.undo()).toBeTruthy()
+  expect(yd.undo()).toBeTruthy()
+  expect(yd.undo()).toBeTruthy()
+  expect(yd.toJSON()).toMatchObject(org_json)
+  expect(yd.undo()).toBeFalsy()
+})
+
+test('delete/replace rojo/1 (PAIR/PLAIN) and undo', () => {
+  let pn = yd.get_parent_by_id('n8')
+  expect(pn.key.value).toBe('rojo')
+  expect(yd.delete_and_replace_with_SELECT('n8')).toBeTruthy()
+  expect(yd.get_node_by_id('n8')).toBeFalsy()
+  expect(yd.undo()).toBeTruthy()
+  expect(yd.toJSON()).toMatchObject(org_json)
+  expect(yd.undo()).toBeFalsy()
+})
+
+test('print it', () => {
+  console.log(yd.toString())
+  expect(1).toBeTruthy()
+})
