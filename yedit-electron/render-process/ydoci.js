@@ -134,11 +134,11 @@ function instrument_ydoc(ydoc) {
     }
     let p = this.get_parent_by_id(id);
     if (!p) {
-      console.error("No sibs: root node can't have siblings")
+      console.debug("No sibs: root node can't have siblings")
       return false
     }
     if (!p.items) {
-      console.error(`No sibs: node ${id} (type ${n.type}) can't have siblings`)
+      console.debug(`No sibs: node ${id} (type ${n.type}) can't have siblings`)
       return false
     }
     let i = p.items.indexOf(n)
@@ -179,7 +179,7 @@ function instrument_ydoc(ydoc) {
     
   ydoc.index_node = function (node) { this._index_ynode_ids(node) }
   ydoc.remove_node_by_id = function (id,no_undo) {
-    let n=this.get_node_by_id(id) ;
+    let n=this.get_node_by_id(id)
     let undo_this=[]
     let doc = this
     if (!n) return ;
@@ -195,13 +195,13 @@ function instrument_ydoc(ydoc) {
     let pn = this.get_parent_by_id(id)
     if (n.type=='PAIR') {
       let i = pn.items.indexOf(n);
-      // n.parent_id=null
+      if (i<pn.items.length-1) n.sib_id = pn.items[i+1].id
       pn.delete(n.key) // n.key may be plain scalar, look out
       undo_this.push( () => { pn.items.splice(i,0,n) } )
     }
     else if (pn.type == 'SEQ') {
       let i = pn.items.indexOf(n);
-      // n.parent_id=null
+      if (i<pn.items.length-1) n.sib_id = pn.items[i+1].id
       undo_this.push( () => { pn.items.splice(i,0,n) } )
       pn.delete(i)
     }

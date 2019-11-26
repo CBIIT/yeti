@@ -9,18 +9,6 @@ const {ipcRenderer} = require('electron')
 
 
 const indent=12
-const undo_max=10
-
-// need undo
-undo_stack = []
-// elts-
-//  { mark:"undo-marker-val",
-//   action: before|after|append|remove
-//   elt: <dom object> }
-
-// delete the last arr-elt or obj-ent, need to present the entity selector
-// need to delete scalar value and replace with entity selector
-// fix padding-inline-start stuff
 
 // need sort by key capability at each level
 
@@ -49,6 +37,7 @@ function yaml_doc_setup () {
   $(document).on("keydown", function (e) {
     if (e.key == 'z' && (e.metaKey || e.ctrlKey)) {
       if (!$( document.activeElement ).is("input")) {
+        console.log("UNDO")
         undo()
       }
       // else in input elt, regular undo
@@ -170,6 +159,8 @@ function edit_control_setup () {
         .forEach( function (n) {
           $(n).find("span[class$='control']")
             .each( edit_control_setup )
+          $(n).find("span[class$='scalar-value-ctl']")
+            .each( scalar_control_setup )
           $(n).find("select")
             .off('change') // make sure there is only one handler (a kludge)
             .change( function (e) {
@@ -204,37 +195,27 @@ function scalar_control_setup() {
     })
 }
 
-////// deprec
-
 function undo() {
-  if (_.isEmpty(undo_stack))
-    return
-  let a = undo_stack.pop()
-  let marked_elt = $(".yaml").find("[_undo_mark='"+a.mark+"']").first();
-  if (!marked_elt) {
-    undo_stack=[]
-    return
+  console.debug("Enter actions:undo")
+  if (ydoc.undo()) {
+    d3data.update_data(ydoc)
+      .forEach( function (n) {
+        $(n).find("span[class$='control']")
+          .each( edit_control_setup )
+        $(n).find("span[class$='scalar-value-ctl']")
+          .each( scalar_control_setup )
+        $(n).find("select")
+          .off('change')
+          .change( function (e) {
+            $(e.target).closest('div[class^="yaml"]').each(do_select)
+          })
+      })    
+    return true
   }
-  marked_elt.removeAttr('_undo_mark')
-  if (a.elt) a.elt.removeAttr('_undo_mark')
-  switch (a.action) {
-  case 'before':
-    a.elt.insertBefore(marked_elt)
-    break
-  case 'after':
-    a.elt.insertAfter(marked_elt)
-    break
-  case 'append':
-    a.elt.appendTo(marked_elt)
-    break
-  case 'remove':
-    marked_elt.remove()
-    break
-  default:
-    console.error("undo: action '"+a.action+"' unknown")
-  }
-  return true
+  return false
 }
+
+////// deprec
 
 function push_to_undo(action, elt) {
   let undo_mark = "undo-"+_.toString(_.random(1,1000))
