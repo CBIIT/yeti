@@ -45,23 +45,23 @@ function yaml_doc_setup () {
   })
 }
 
-function insert_obj_ent (sib_id) {
+function insert_obj_ent (sib_id, before) {
   console.debug("Enter actions:insert_obj_ent")
   let new_node = ydoc.create_pair_node('new_key', 'SELECT')
   new_node.key.value = new_node.key.value+new_node.id
   // add to node - return sib id and "before" flag
   new_node.sib_id = sib_id
-  new_node.before = true
-  ydoc.insert_at_id(sib_id,new_node,true)
+  new_node.before = before
+  ydoc.insert_at_id(sib_id,new_node,before)
 }
 
-function insert_arr_elt (sib_id) {
+function insert_arr_elt (sib_id,before) {
   console.debug("Enter actions:insert_arr_elt")
   let new_node = ydoc.create_node('SELECT')
   // add to node - return sib id and "before" flag
   new_node.sib_id = sib_id
-  new_node.before = true
-  ydoc.insert_at_id(sib_id,new_node,true)
+  new_node.before = before
+  ydoc.insert_at_id(sib_id,new_node,before)
 }
 
 function do_select () {
@@ -108,22 +108,34 @@ function edit_control_setup () {
   if ($(this).hasClass('yaml-obj-ent-control')) cls='yaml-obj-ent'
   if ($(this).hasClass('yaml-arr-elt-control')) cls='yaml-arr-elt'
   $(this)
-    .text("•")
+    .text("•") // "▽" "△" "⊕"
+    .off('hover')
     .hover(
       function (e) {
         if (e.metaKey)
 	  $(this).attr('style','color:red').text("⊗")
-        else
-          $(this).text("⊕")          
+        else {
+          $(this).text("△")
+        }
 	let $elt = $(this)
 	$(document).on(
 	  "keydown.yaml",
 	  function (f) {
-	    if (f.key == 'Meta') $elt.attr('style','color:red').text("⊗")
+            if (!f.metaKey) {
+              if (f.key == 'Shift') $elt.removeAttr('style').text("▽") 
+              else if (f.key == 'Meta') $elt.attr('style','color:red').text("⊗")
+            }
+            else if (f.key == 'Meta') $elt.attr('style','color:red').text("⊗")
+
 	  }).on(
 	    "keyup.yaml",
 	    function (f) {
-	      if (f.key == 'Meta') $elt.removeAttr('style').text("⊕")
+              if (!f.metaKey)
+                if (f.key == 'Shift' || f.key == 'Meta') $elt.removeAttr('style').text("△")
+              else {
+                if (f.key == 'Shift') $elt.attr('style','color:red').text("⊗")
+                else if (f.key == 'Meta') $elt.attr('style','color:red').text("⊗")
+              }
 	    })
       },
       function (e) {
@@ -138,13 +150,14 @@ function edit_control_setup () {
                       $(e.target.closest('[data-node-id]')).attr('data-node-id') :
                       // yaml-arr-elt
                       $(e.target).parent().find('[data-node-id]').attr('data-node-id') )
-      if ($(e.target).text() == "⊕") {
+      if (["△","▽"].indexOf($(e.target).text()) >= 0 ) {
+        let bef = ($(e.target).text() == "△" ? true : false)
 	switch (cls) {
 	case 'yaml-obj-ent':
-          insert_obj_ent(node_id)
+          insert_obj_ent(node_id,bef)
 	  break
 	case 'yaml-arr-elt':
-          insert_arr_elt( node_id )
+          insert_arr_elt( node_id,bef)
 	  break
 	default:
 	  break
