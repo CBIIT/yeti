@@ -411,6 +411,71 @@ function instrument_ydoc(ydoc) {
     this._undo_stack.push(undo_this)
     return true
   }
+  
+  ydoc.sort_at_id = function (id) {
+    let n = this.get_node_by_id(id)
+    let doc = this
+    let undo_this = []
+    if (!n) {
+      console.error(`No node with id ${id}`)
+      return false
+    }
+    let p = this.get_parent_by_id(id)
+    if (['MAP','SEQ'].indexOf(p.type) >= 0) {
+      n = p
+    }
+    else if (n.type == 'PLAIN') {
+      console.debug(`Can't sort at node ${id}`)
+      return false
+    }
+    n.items.sort( (a,b) => {
+      if (a.type == 'PLAIN' ) {
+        if (b.type == 'PLAIN') {
+          if (a.value < b.value) {
+            return -1
+          }
+          else if (a.value > b.value) {
+            return 1
+          }
+          else return 0
+        }
+        else {
+          return -1 // PLAIN < MAP,SEQ
+        }
+      }
+      else {
+        if (b.type == 'PLAIN') {
+          return 1 // PLAIN < MAP,SEQ
+        }
+        else if (a.type == 'PAIR' && b.type == 'PAIR') {
+          if (a.key.value > b.key.value) {
+            return 1
+          }
+          else if (a.key.value < b.key.value) {
+            return -1
+          }
+          else { // a.key.value == b.key.value
+            return 0
+          }
+        }
+        else if ( a.type == b.type ) {
+          return 0
+        }
+        else if ( a.type == 'MAP' && b.type == 'SEQ' ) {
+          return 1
+        }
+        else if ( b.type == 'MAP' && a.type == 'SEQ' ) {
+          return -1
+        }
+        else {
+          console.error("Shouldn't be here")
+          return 0
+        }
+      }
+    })
+    return true
+  }
+
   ydoc.undo = function () {
     console.debug("Enter ydoci:undo")
     let l = ydoc._undo_stack.pop()
