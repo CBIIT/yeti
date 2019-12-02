@@ -428,6 +428,9 @@ function instrument_ydoc(ydoc) {
       console.debug(`Can't sort at node ${id}`)
       return false
     }
+    let old_order = n.items.map( (l) => {
+      return {id:l.id, sib_id:l.sib_id}
+    })
     n.items.sort( (a,b) => {
       if (a.type == 'PLAIN' ) {
         if (b.type == 'PLAIN') {
@@ -473,6 +476,18 @@ function instrument_ydoc(ydoc) {
         }
       }
     })
+    // update sib_id
+    for (let i=0; i < n.items.length-1; i++) {
+      n.items[i].sib_id = n.items[i+1].id
+    }
+    n.items[n.items.length-1].sib_id = null
+    undo_this.push( () => {
+      for (let i=0 ; i<n.items.length; i++) {
+        n.items[i] = doc.get_node_by_id(old_order[i].id)
+        n.items[i].sib_id = old_order[i].sib_id
+      }
+    })
+    this._undo_stack.push( undo_this )
     return true
   }
 

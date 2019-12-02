@@ -55,9 +55,16 @@ test('sort rojo/azul/amarillo (MAP)', () => {
   expect(yd.sort_at_id('n4')).toBeTruthy()
   expect(yd.get_node_by_id('n4').items.map( x => x.key.value)).toEqual(['amarillo','azul','rojo'])
 })
+test('sort undo', () => {
+  expect(yd.undo()).toBeTruthy()
+  expect(yd.undo()).toBeTruthy()
+  expect(yd.toJSON()).toMatchObject(org_json)  
+})
+
 yf = fs.readFileSync('test.yaml','utf-8')
 yd = yaml.parseDocument(yf)
 ydoci.instrument_ydoc(yd)
+org_json = yd.toJSON()
 
 test('sort at violette (SEQ)', () => {
   expect(yd.get_node_by_id('n33').type).toBe('PLAIN')
