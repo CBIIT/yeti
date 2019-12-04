@@ -9,12 +9,24 @@ const {ipcRenderer} = require('electron')
 
 
 const indent=12
+const icon = {
+  control:'•',
+  ins_above:'↖︎',
+  ins_below:'↘︎',
+  sort_down:'▽',
+  sort_up:'△',
+  del:'⊗',
+  add:"⊕"
+}
+  
+
 
 // need sort by key capability at each level
 
 // how to preserve comments?
 
 var ydoc = null;
+var topent = [];
 
 $(function () {
   ipcRenderer
@@ -35,12 +47,39 @@ function yaml_doc_setup () {
   $(".yaml-scalar-value-ctl")
     .each( scalar_control_setup )
   $(document).on("keydown", function (e) {
-    if (e.key == 'z' && (e.metaKey || e.ctrlKey)) {
-      if (!$( document.activeElement ).is("input")) {
-        console.log("UNDO")
-        undo()
+    if (e.metaKey || e.ctrlKey) {
+      switch (e.key) {
+      case 'z':
+        if (!$( document.activeElement ).is("input")) {
+          undo()
+        }
+        // else in input elt, regular undo
+      default:
+        return
       }
-      // else in input elt, regular undo
+    }
+    else {
+      switch (e.key) {
+      case 'F7':
+        if (topent.length) {
+          console.log("sort")
+          if (ydoc.sort_at_id( topent[0].__data__.id )) d3data.update_data(ydoc)
+        }
+        break
+      default:
+        return
+      }
+    }
+  })
+  $(".yaml-obj, .yaml-arr").mouseenter( function (e) {
+    $(this).addClass("yaml-border-hilite")
+    topent.forEach( (elt) => { $(elt).removeClass("yaml-border-hilite") } )
+    topent.unshift(this)
+  })
+  $(".yaml-obj, .yaml-arr").mouseleave( function (e) {
+    $(topent.shift()).removeClass("yaml-border-hilite")
+    if (topent.length) {
+      $(topent[0]).addClass("yaml-border-hilite")
     }
   })
 }
@@ -86,6 +125,14 @@ function do_select () {
   return true
 }
 
+function do_sort () {
+  let data = this.__data__;
+  if (ydoc.sort_at_id(data.id)) {
+    d3data.update_data(ydoc)
+  }
+  // else ignore
+}
+
 function hider (e) {
   e.stopPropagation()
   let tgt = e.target
@@ -108,38 +155,38 @@ function edit_control_setup () {
   if ($(this).hasClass('yaml-obj-ent-control')) cls='yaml-obj-ent'
   if ($(this).hasClass('yaml-arr-elt-control')) cls='yaml-arr-elt'
   $(this)
-    .text("•") // "▽" "△" "⊕"
+    .text(icon.control)
     .off('hover')
     .hover(
       function (e) {
-        if (e.metaKey)
-	  $(this).attr('style','color:red').text("⊗")
+        if (e.metaKey || e.ctrlKey)
+	  $(this).attr('style','color:red').text(icon.del)
         else {
-          $(this).text("△")
+          $(this).text(icon.ins_above)
         }
 	let $elt = $(this)
 	$(document).on(
 	  "keydown.yaml",
 	  function (f) {
-            if (!f.metaKey) {
-              if (f.key == 'Shift') $elt.removeAttr('style').text("▽") 
-              else if (f.key == 'Meta') $elt.attr('style','color:red').text("⊗")
+            if (!(f.metaKey || f.ctrlKey)) {
+              if (f.key == 'Shift') $elt.removeAttr('style').text(icon.ins_below) 
+              else if (f.key == 'Meta' || f.key == 'Control') $elt.attr('style','color:red').text(icon.del)
             }
-            else if (f.key == 'Meta') $elt.attr('style','color:red').text("⊗")
+            else if (f.key == 'Meta' || f.key == 'Control') $elt.attr('style','color:red').text(icon.del)
 
 	  }).on(
 	    "keyup.yaml",
 	    function (f) {
               if (!f.metaKey)
-                if (f.key == 'Shift' || f.key == 'Meta') $elt.removeAttr('style').text("△")
+                if (f.key == 'Shift' || f.key == 'Meta' || f.key == 'Control') $elt.removeAttr('style').text(icon.ins_above)
               else {
-                if (f.key == 'Shift') $elt.attr('style','color:red').text("⊗")
-                else if (f.key == 'Meta') $elt.attr('style','color:red').text("⊗")
+                if (f.key == 'Shift') $elt.attr('style','color:red').text(icon.del)
+                else if (f.key == 'Meta' || f.key == 'Control') $elt.attr('style','color:red').text(icon.del)
               }
 	    })
       },
       function (e) {
-	$(this).removeAttr('style').text("•")
+	$(this).removeAttr('style').text(icon.control)
 	$(document).off("keydown.yaml").off("keyup.yaml")
       } )
     .off('click') // make sure there is only one handler (a kludge)
@@ -150,8 +197,8 @@ function edit_control_setup () {
                       $(e.target.closest('[data-node-id]')).attr('data-node-id') :
                       // yaml-arr-elt
                       $(e.target).parent().find('[data-node-id]').attr('data-node-id') )
-      if (["△","▽"].indexOf($(e.target).text()) >= 0 ) {
-        let bef = ($(e.target).text() == "△" ? true : false)
+      if ([icon.ins_above,icon.ins_below].indexOf($(e.target).text()) >= 0 ) {
+        let bef = ($(e.target).text() == icon.ins_above ? true : false)
 	switch (cls) {
 	case 'yaml-obj-ent':
           insert_obj_ent(node_id,bef)
@@ -163,7 +210,7 @@ function edit_control_setup () {
 	  break
 	}
       }
-      else if ($(e.target).text() == "⊗") {
+      else if ($(e.target).text() == icon.del) {
         $(e.target).trigger('mouseout')
         ydoc.delete_and_replace_with_SELECT(node_id)
  
@@ -184,14 +231,12 @@ function edit_control_setup () {
       if (!$(e.target).parent().find('[data-node-id]').length) {
         $(e.target).parent().remove()
       }
-
-        
     })
 }
 
 function scalar_control_setup() {
   $(this)
-    .text("⊗")
+    .text(icon.del)
     .off('click')
     .click( (e) => {
       e.preventDefault()

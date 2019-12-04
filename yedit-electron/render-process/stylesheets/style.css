@@ -17,11 +17,23 @@ a {
 .yaml-obj {
     padding-inline-start: 12px;
     color: darkred;
+    border-style: solid;
+    border-color: lightred;
+    border-width: 0 0 0 1px;
 }
+
 .yaml-arr {
-    color: green;
+    color: blue;
     padding-inline-start: 12px;
+    border-style: solid;
+    border-color: blue;
+    border-width: 0 0 0 1px;
 }
+
+.yaml-border-hilite {
+    border-width: 0 1px 0 2px;
+}
+
 .yaml-arr-elt-control {
     color: green;
     cursor: pointer;
@@ -29,6 +41,11 @@ a {
 }
 .yaml-obj-ent-control {
     color: green;
+    cursor: pointer;
+    padding-left: 3px;
+}
+.yaml-scalar-value-ctl {
+    color: red;
     cursor: pointer;
     padding-right: 3px;
 }

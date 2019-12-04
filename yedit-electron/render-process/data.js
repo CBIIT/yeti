@@ -135,7 +135,27 @@ function update_data(ydoc) {
             }
           )        
       },
-      update => { return },
+      update => {
+        update
+          .filter( d => d.__sorted )
+          .each( function (d) {
+            delete d._sorted;
+            let cnt = this.querySelector(".insert-here")
+            d.items.forEach( (c) => {
+              let tmp = cnt.querySelector(`[data-node-id=${c.id}]`)
+              let nod = null
+              for (let i=0; i<cnt.childNodes.length; i++) {
+                if ( cnt.childNodes[i].contains(tmp) ) {
+                  nod = cnt.childNodes[i]
+                  break
+                }
+              }
+              if (nod) {
+                cnt.appendChild(nod)
+              }
+            })
+          } )
+      },
       exit => {
         exit
           .filter(":not([data-node-id='container'])")

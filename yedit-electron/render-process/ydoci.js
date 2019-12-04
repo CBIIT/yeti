@@ -421,12 +421,14 @@ function instrument_ydoc(ydoc) {
       return false
     }
     let p = this.get_parent_by_id(id)
-    if (['MAP','SEQ'].indexOf(p.type) >= 0) {
-      n = p
-    }
-    else if (n.type == 'PLAIN') {
-      console.debug(`Can't sort at node ${id}`)
-      return false
+    if (p.id != 'container') {
+      if (['MAP','SEQ'].indexOf(p.type) >= 0) {
+        n = p
+      }
+      else if (n.type == 'PLAIN') {
+        console.debug(`Can't sort at node ${id}`)
+        return false
+      }
     }
     let old_order = n.items.map( (l) => {
       return {id:l.id, sib_id:l.sib_id}
@@ -481,10 +483,12 @@ function instrument_ydoc(ydoc) {
       n.items[i].sib_id = n.items[i+1].id
     }
     n.items[n.items.length-1].sib_id = null
+    n.__sorted = 1
     undo_this.push( () => {
       for (let i=0 ; i<n.items.length; i++) {
         n.items[i] = doc.get_node_by_id(old_order[i].id)
         n.items[i].sib_id = old_order[i].sib_id
+        n.__sorted = 1 // flag to rerender
       }
     })
     this._undo_stack.push( undo_this )
