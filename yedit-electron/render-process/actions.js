@@ -46,6 +46,20 @@ function yaml_doc_setup () {
     .each( edit_control_setup )
   $(".yaml-scalar-value-ctl")
     .each( scalar_control_setup )
+  $(".yaml-obj-ent, .yaml-arr-elt").focusin( function (e) {
+    e.stopPropagation()
+    let ent = this.closest(".yaml-obj, .yaml-arr")
+    $(ent).addClass("yaml-border-hilite")
+    topent.forEach( (elt) => { $(elt).removeClass("yaml-border-hilite") } )
+    topent.unshift(ent)
+  })
+  $(".yaml-obj-ent, .yaml-arr-elt").focusout( function (e) {
+    e.stopPropagation()    
+    $(topent.shift()).removeClass("yaml-border-hilite")
+    if (topent.length) {
+      $(topent[0]).addClass("yaml-border-hilite")
+    }
+  })
   $(document).on("keydown", function (e) {
     if (e.metaKey || e.ctrlKey) {
       switch (e.key) {
@@ -60,29 +74,22 @@ function yaml_doc_setup () {
     }
     else {
       switch (e.key) {
-      case 'F7':
+      case 'F7': // sort at level
         if (topent.length) {
-          console.log("sort")
           if (ydoc.sort_at_id( topent[0].__data__.id )) d3data.update_data(ydoc)
         }
         break
+      case 'F8': // collapse at level
+        if (topent.length) {
+          let elt = topent[0]
+          $(elt).find('.insert-here')
+            .children('.yaml-obj-ent')
+            .find('.yaml-obj-val')
+            .fadeToggle()
+        }          
       default:
         return
       }
-    }
-  })
-  $(".yaml-obj-ent, .yaml-arr-elt").focusin( function (e) {
-    e.stopPropagation()
-    let ent = this.closest(".yaml-obj, .yaml-arr")
-    $(ent).addClass("yaml-border-hilite")
-    topent.forEach( (elt) => { $(elt).removeClass("yaml-border-hilite") } )
-    topent.unshift(ent)
-  })
-  $(".yaml-obj-ent, .yaml-arr-elt").focusout( function (e) {
-    e.stopPropagation()    
-    $(topent.shift()).removeClass("yaml-border-hilite")
-    if (topent.length) {
-      $(topent[0]).addClass("yaml-border-hilite")
     }
   })
 }
