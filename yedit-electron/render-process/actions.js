@@ -71,12 +71,15 @@ function yaml_doc_setup () {
       }
     }
   })
-  $(".yaml-obj, .yaml-arr").mouseenter( function (e) {
-    $(this).addClass("yaml-border-hilite")
+  $(".yaml-obj-ent, .yaml-arr-elt").focusin( function (e) {
+    e.stopPropagation()
+    let ent = this.closest(".yaml-obj, .yaml-arr")
+    $(ent).addClass("yaml-border-hilite")
     topent.forEach( (elt) => { $(elt).removeClass("yaml-border-hilite") } )
-    topent.unshift(this)
+    topent.unshift(ent)
   })
-  $(".yaml-obj, .yaml-arr").mouseleave( function (e) {
+  $(".yaml-obj-ent, .yaml-arr-elt").focusout( function (e) {
+    e.stopPropagation()    
     $(topent.shift()).removeClass("yaml-border-hilite")
     if (topent.length) {
       $(topent[0]).addClass("yaml-border-hilite")
