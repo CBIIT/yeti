@@ -179,13 +179,17 @@ function create_from_yaml_node(d, parentType) {
       '        <option value="array">array</option>' +
       '        <option value="object">object</option>'+
       '</select>'
+  let cmt = d.comment
+  let cmt_bef = d.commentBefore
   switch (d.type) {
   case 'PAIR':
     elt.setAttribute('class','yaml-obj-ent')
     elt.innerHTML =
+      ( cmt_bef ? `<div class="yaml-comment"><span class="yaml-comment-mrk"># </span>${cmt_bef}</div>` : '') +
       '<span class="yaml-obj-ent-control"></span>'+
       `<input class="yaml-obj-key" value="${d.key.value}">`+
       '<span class="yaml-obj-val-mrk">:</span>'+
+      ( cmt ? `<span class="yaml-item-comment"><span class="yaml-comment-mrk"># </span>${cmt}</span>` : '') +
       '<div class="insert-here"></div>'+
       '<span class="yaml-status"></span>'
     $(elt).find('input')
@@ -205,15 +209,21 @@ function create_from_yaml_node(d, parentType) {
       elt.innerHTML = '<span class="insert-here"></span>'
       break
     case 'PAIR':
-      elt.innerHTML = '<span class="insert-here"></span>'
+      elt.innerHTML = 
+        ( cmt_bef ? `<span class="yaml-comment"><span class="yaml-comment-mrk"># </span>${cmt_bef}</span>` : '') +
+        '<span class="insert-here"></span>' +
+        ( cmt ? `<span class="yaml-comment"><span class="yaml-comment-mrk"># </span>${cmt}</span>` : '')
       break
     case 'SEQ':
       elt.innerHTML = '<span class="insert-here"></span>'
       let wrap = document.createElement('div')
       wrap.setAttribute('class', 'yaml-arr-elt')
-      wrap.innerHTML = '<span class="yaml-arr-elt-mrk">-</span>'+
+      wrap.innerHTML = 
+        '<span class="yaml-arr-elt-mrk">-</span>'+
+        ( cmt_bef ? `<span class="yaml-comment"><span class="yaml-comment-mrk"># </span>${cmt_bef}</span>` : '') +        
         '<span class="yaml-status"></span>'+
-        '<span class="yaml-arr-elt-control"></span>'
+        '<span class="yaml-arr-elt-control"></span>' +
+        ( cmt ? `<span class="yaml-comment"><span class="yaml-comment-mrk"># </span>${cmt}</span>` : '')        
       wrap.insertBefore(elt, wrap.querySelector('.yaml-status'))
       elt = wrap
       break
@@ -227,11 +237,13 @@ function create_from_yaml_node(d, parentType) {
       wrap = document.createElement('div')
       wrap.setAttribute('class', 'yaml-arr-elt')
       wrap.innerHTML =
+        ( cmt_bef ? `<span class="yaml-comment"><span class="yaml-comment-mrk"># </span>${cmt_bef}</span>` : '') +
         '<span class="yaml-arr-elt-mrk">-</span>'+
         '<span class="yaml-status"></span>'+
-        '<span class="yaml-arr-elt-control"></span>'
+        '<span class="yaml-arr-elt-control"></span>' +
+        ( cmt ? `<span class="yaml-item-comment"><span class="yaml-comment-mrk"># </span>${cmt}</span>` : '')  
       elt.innerHTML = ( d.value == 'SELECT' ? sel :
-                        `<input class="yaml-ptext" value="${d.value}">`)
+                        `<input class="yaml-ptext" value="${d.value}">`) 
       wrap.insertBefore(elt, wrap.querySelector('.yaml-status'))
       elt = wrap
       $(elt).find('input')
@@ -242,8 +254,10 @@ function create_from_yaml_node(d, parentType) {
       break
     case 'PAIR':
       elt.setAttribute('class','yaml-scalar')
-      elt.innerHTML = (d.value == 'SELECT' ? sel :
-                       `<input class="yaml-ptext" value="${d.value}"><span class="yaml-scalar-value-ctl"></span>`)
+      elt.innerHTML = ( cmt_bef ? `<span class="yaml-comment"><span class="yaml-comment-mrk"># </span>${cmt_bef}</span>` : '') +
+        (d.value == 'SELECT' ? sel :
+                       `<input class="yaml-ptext" value="${d.value}"><span class="yaml-scalar-value-ctl"></span>`) +
+        ( cmt ? `<span class="yaml-item-comment"><span class="yaml-comment-mrk"># </span>${cmt}</span>` : '')        
       $(elt).find('input')
         .change( function () {
           d.value = $(this).val()

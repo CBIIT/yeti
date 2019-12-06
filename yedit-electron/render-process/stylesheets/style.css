@@ -91,6 +91,12 @@ a {
 .yaml-comment {
     color: lightblue;
     font-style: italic;
+    display: block;
+}
+.yaml-item-comment {
+    color: darkblue;
+    font-style: italic;
+    display: inline;
 }
 .yaml-scalar {
     display: inline;

@@ -1,17 +1,26 @@
-red:
-  rojo: 1
+# comment before red
+red: # comment on red
+# comment before rojo
+  rojo: 1 
   azul:
-    - a
+    - a # comment on a
+    # comment after a, before b
     - b
     - c
   amarillo: null
+  # comment after amarillo, before blue
+# comment before blue
 blue:
-  blau: 5
+# comment after blue
+  blau: 5   # comment on blau
   rot: 6
   gelb:
+    # comment before gelb/0
     -
+      # comment before gruen
       gruen: 7
       braun: 8
+    # comment before gelb/1      
     -
       schwarz: kopf
 yellow: 
