@@ -84,7 +84,7 @@ function yaml_doc_setup () {
             .children('.yaml-obj-ent')
             .find('.yaml-obj-val')
             .fadeToggle()
-        }          
+        }
       default:
         return
       }
@@ -277,13 +277,14 @@ function comment_setup() {
     )
     .click( function () {
       let txt = $(this).find('.yaml-comment-content').text()
+      let loc = $(this).find('.yaml-comment-content').attr('data-comment-loc')
+      let d_id = this.__data__.id
       if (!txt)
         return
       let ht = $(this).height()
-      let wd = $(this).width()
-      wd = 0.95*wd
+      let wd = 0.95*$(this).width()
       let fsz = $(this).css('font-size')
-      $(this).find('.yaml-comment-content').replaceWith(`<textarea class="yaml-comment-textarea">${txt}</textarea>`)
+      $(this).find('.yaml-comment-content').replaceWith(`<textarea class="yaml-comment-textarea" data-comment-loc="${loc}">${txt}</textarea>`)
       $(this).find('textarea')
         .height(ht)
         .width(wd)
@@ -292,12 +293,22 @@ function comment_setup() {
         .trigger('focus')
         .focusout( function () {
           let val = $(this).val()
-          $(this).replaceWith(`<span class="yaml-comment-content">${val}</span>`)
+          $(this).replaceWith(`<span class="yaml-comment-content" data-comment-loc="${loc}">${val}</span>`)
+          // update data structure
+          let nd = ydoc.get_node_by_id(d_id)
+          switch (loc) {
+          case 'before':
+            nd.commentBefore = val
+            break;
+          case 'on':
+            nd.comment = val
+            break;
+          default:
+            console.error("Comment content element - data-loc attribute problem")
+          }
+
         })
       })
-
-          
-  
 }
 
 function undo() {
