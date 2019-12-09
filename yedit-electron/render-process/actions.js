@@ -18,10 +18,6 @@ const icon = {
   del:'⊗',
   add:"⊕"
 }
-  
-
-
-// need sort by key capability at each level
 
 // how to preserve comments?
 
@@ -46,6 +42,8 @@ function yaml_doc_setup () {
     .each( edit_control_setup )
   $(".yaml-scalar-value-ctl")
     .each( scalar_control_setup )
+  $("[class$='comment']")
+    .each( comment_setup )
   $(".yaml-obj-ent, .yaml-arr-elt").focusin( function (e) {
     e.stopPropagation()
     let ent = this.closest(".yaml-obj, .yaml-arr")
@@ -261,6 +259,45 @@ function scalar_control_setup() {
             })
         })
     })
+}
+
+function comment_setup() {
+  $(this)
+    .off('mouseover')
+    .off('mouseout')
+    .off('click')
+    .off('focusout')
+    .hover(
+      function () {
+        $(this).attr('style','color: blue')
+      },
+      function () {
+        $(this).attr('style','')
+      }
+    )
+    .click( function () {
+      let txt = $(this).find('.yaml-comment-content').text()
+      if (!txt)
+        return
+      let ht = $(this).height()
+      let wd = $(this).width()
+      wd = 0.95*wd
+      let fsz = $(this).css('font-size')
+      $(this).find('.yaml-comment-content').replaceWith(`<textarea class="yaml-comment-textarea">${txt}</textarea>`)
+      $(this).find('textarea')
+        .height(ht)
+        .width(wd)
+        .css('font-size',fsz)
+        .css('font-style','italic')
+        .trigger('focus')
+        .focusout( function () {
+          let val = $(this).val()
+          $(this).replaceWith(`<span class="yaml-comment-content">${val}</span>`)
+        })
+      })
+
+          
+  
 }
 
 function undo() {
