@@ -21,6 +21,7 @@ const icon = {
 
 var ydoc = null;
 var topent = [];
+var comments_to_check = [];
 
 $(function () {
   ipcRenderer
@@ -281,6 +282,7 @@ function comment_setup() {
       }
     )
     .click( function () {
+      let comment_elt = this
       let txt = $(this).find('.yaml-comment-content').text()
       let loc = $(this).find('.yaml-comment-content').attr('data-comment-loc')
       let d_id = this.__data__.id
@@ -311,7 +313,8 @@ function comment_setup() {
           default:
             console.error("Comment content element - data-loc attribute problem")
           }
-
+          comments_to_check.push(comment_elt)
+          clean_up_comments()
         })
       })
 }
@@ -328,7 +331,6 @@ function open_comment_locations() {
     let ent = this.closest('.yaml-obj-ent')
     let val = $(ent).children('.yaml-obj-val').get(0)
     if ($(val).children(':first-child').hasClass('yaml-scalar')) {
-      console.log("DUUDDE")
       $(ent).children('.yaml-comment')
         .each(turn_on_comment)
       $(val).find('.yaml-item-comment')
@@ -369,10 +371,18 @@ function open_comment_locations() {
           this.innerHTML = 'add comment'
         }
       })
+    comments_to_check.push(this)
   }
 }
 
-function close_comment_locations() {
+function clean_up_comments () {
+  for (let c = comments_to_check.pop(); c ; c = comments_to_check.pop()) {
+    let content = c.querySelector('.yaml-comment-content').innerHTML
+    if ( content == '' || content == 'add comment') {
+      c.querySelector('.yaml-comment-content').innerHTML = ''
+      c.querySelector('.yaml-comment-mrk').innerHTML = ''
+    }
+  }
 }
 
 function undo() {
