@@ -19,8 +19,6 @@ const icon = {
   add:"⊕"
 }
 
-// how to preserve comments?
-
 var ydoc = null;
 var topent = [];
 
@@ -85,6 +83,13 @@ function yaml_doc_setup () {
             .find('.yaml-obj-val')
             .fadeToggle()
         }
+        break
+      case 'F12': // open comment locations
+        console.log('hey f12')
+        console.log(e.target)
+        $(e.target)
+          .each(open_comment_locations)
+        break
       default:
         return
       }
@@ -309,6 +314,65 @@ function comment_setup() {
 
         })
       })
+}
+
+function open_comment_locations() {
+  console.debug("Enter actions:open_comment_locations")
+  // only work on input elements
+  if (this.tagName != 'INPUT') {
+    return false
+  }
+  let belongs = this.closest('.yaml-obj,.yaml-arr')
+  if ($(belongs).hasClass('yaml-obj')) {
+    // in MAP
+    let ent = this.closest('.yaml-obj-ent')
+    let val = $(ent).children('.yaml-obj-val').get(0)
+    if ($(val).children(':first-child').hasClass('yaml-scalar')) {
+      console.log("DUUDDE")
+      $(ent).children('.yaml-comment')
+        .each(turn_on_comment)
+      $(val).find('.yaml-item-comment')
+        .each(turn_on_comment)
+    }
+    else {
+      $(ent)
+        .children('.yaml-comment,.yaml-item-comment')
+        .each(turn_on_comment)
+    }
+    $(belongs)
+      .children('.yaml-comment,.yaml-item-comment')
+      .each(turn_on_comment)
+  }
+  else if ($(belongs).closest('.yaml-arr')) {
+    let elt = this.closest('.yaml-arr-elt')
+    $(elt)
+      .children('.yaml-comment,.yaml-item-comment')
+      .each(turn_on_comment)
+    $(belongs)
+      .children('.yaml-comment,.yaml-item-comment')
+      .each(turn_on_comment)
+  }
+  else {
+    return false
+  }
+  function turn_on_comment() { 
+    $(this).children('.yaml-comment-mrk')
+      .each( function () {
+        if (!this.innerHTML.match(/#/)) {
+          this.innerHTML = '# '
+          $(this).css('color','green')
+        }
+      })
+    $(this).children('.yaml-comment-content')
+      .each( function () {
+        if (!this.innerHTML) {
+          this.innerHTML = 'add comment'
+        }
+      })
+  }
+}
+
+function close_comment_locations() {
 }
 
 function undo() {

@@ -254,7 +254,7 @@ function create_from_yaml_node(d, parentType) {
       break
     case 'PAIR':
       elt.setAttribute('class','yaml-scalar')
-      elt.innerHTML = '<span class="yaml-comment"><span class="yaml-comment-mrk"></span><span class="yaml-comment-content" data-comment-loc="before"></span></span>' +
+      elt.innerHTML = 
         (d.value == 'SELECT' ? sel :
                        `<input class="yaml-ptext" value="${d.value}"><span class="yaml-scalar-value-ctl"></span>`) +
         '<span class="yaml-item-comment"><span class="yaml-comment-mrk"></span><span class="yaml-comment-content" data-comment-loc="on"></span></span>' 
