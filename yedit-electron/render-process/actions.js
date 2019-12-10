@@ -1,6 +1,7 @@
 const $ = require('jquery')
 const _ = require('lodash')
 const path = require('path')
+const fs = require('fs')
 const d3 = require('d3')
 
 const d3data = require('../data.js')
@@ -29,6 +30,16 @@ $(function () {
       ydoc = YAML.parseDocument(inf, { prettyErrors: true })
       d3data.render_data(ydoc)
       yaml_doc_setup()
+    })
+    .on('selected-save-yaml', function (event, pth) {
+      fs.writeFile(pth, ydoc.toString(), {encoding:'utf8',flag:'w'}, (err) => {
+        if (err) {
+          console.error(err)
+        }
+        else {
+          console.log(`Saved ${pth}`)
+        }
+      })
     })
 })
 
@@ -130,6 +141,8 @@ function do_select () {
         .each( edit_control_setup )
       $(n).find("span[class$='scalar-value-ctl']")
         .each( scalar_control_setup )
+      $(n).find("[class$='comment']")
+        .each( comment_setup )
       $(n).find("select")
         .off('change')
         .change( function (e) {
@@ -235,6 +248,8 @@ function edit_control_setup () {
             .each( edit_control_setup )
           $(n).find("span[class$='scalar-value-ctl']")
             .each( scalar_control_setup )
+          $(n).find("[class$='comment']")
+            .each( comment_setup )
           $(n).find("select")
             .off('change') // make sure there is only one handler (a kludge)
             .change( function (e) {

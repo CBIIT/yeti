@@ -19,7 +19,10 @@ let template = [{
   },{
     label: 'Save',
     accelerator: 'CmdOrCtrl+S',
-    role: 'save'
+    role: 'save',
+    click: () => {
+      app.emit('save-file-dialog')
+    }
   }
   ]},
   {

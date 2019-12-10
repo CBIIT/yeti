@@ -81,7 +81,8 @@ function initialize () {
     }
     else {
       dialog.showOpenDialog({
-        properties: ['openFile']
+        properties: ['openFile'],
+        filters: { name: "YAML Files", extensions: ['yml', 'yaml'] }
       }, (files) => {
         if (files) {
           // let ydoc=null
@@ -112,6 +113,23 @@ function initialize () {
             return
           }
           mainWindow.webContents.send('selected-yaml', inf)
+        }
+      })
+    }
+  })
+
+    app.on('save-file-dialog', (event) => {
+    if (mainWindow === null) {
+      app.emit('activate')
+      app.emit('open-file-dialog')
+    }
+    else {
+      dialog.showSaveDialog({
+        defaultPath: 'out.yaml',
+      }, (pth) => {
+        if (pth) {
+          // let ydoc=null
+          mainWindow.webContents.send('selected-save-yaml', pth)
         }
       })
     }
