@@ -75,6 +75,7 @@ function instrument_ydoc(ydoc) {
   }
   ydoc._set_parent_ids = function (node) {
     this.__walk(node, (n) => { let c = this.__children(n) ; if (c) c.forEach( (d) => {  if (d) d.parent_id = n.id } ) },true )
+    return true
   }
   ydoc._type_ynode = function (node) {
     add_type(node)
@@ -93,6 +94,7 @@ function instrument_ydoc(ydoc) {
       else
         console.error('bork')
     }
+    return true
   }
   ydoc._index_ynode_ids = function (node) {
     if (!this.index) {
@@ -103,11 +105,14 @@ function instrument_ydoc(ydoc) {
       this.__walk(node, (n) => {this.index[n.id] = n; this.order.push(n);}, true)
     return true
   }
-  ydoc._add_ynode_ids(ydoc.contents)
-  ydoc._type_ynode(ydoc.contents)
-  ydoc._set_parent_ids(ydoc.contents)
-  ydoc.contents.parent_id='container'
-  ydoc._index_ynode_ids(ydoc.contents)
+  
+  ydoc._setup = function () {
+    this._type_ynode(this.contents) // must be run before other setup fns
+    this._add_ynode_ids(this.contents)
+    this._set_parent_ids(this.contents)
+    this.contents.parent_id='container'
+    this._index_ynode_ids(this.contents)
+  }
   
   ydoc.get_node_by_id = function (id) {
     if (!this.index[id]) {

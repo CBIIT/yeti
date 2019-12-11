@@ -3,16 +3,25 @@ const os = require('os')
 
 menu_template = null
 
-let template = [{
+let template = [
+  {
   label: 'File',
-  submenu: [{
+    submenu: [{
+    label: 'New',
+    accelerator: 'CmdOrCtrl+N',
+    role: 'new',
+    click: () => {
+      app.emit('new-yaml')
+    }
+    }, {     
     label: 'Open',
     accelerator: 'CmdOrCtrl+O',
     role: 'open',
     click: () => {
       app.emit('open-file-dialog')
     }
-  },{
+  },
+  {
     label: 'Close',
     accelerator: 'CmdOrCtrl+W',
     role: 'close'

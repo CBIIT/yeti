@@ -32,6 +32,7 @@ function render_data(ydoc) {
   }
   if (!ydoc.instrumented) {
     ydoci.instrument_ydoc(ydoc)
+    ydoc._setup()
   }
   // let yh = d3.hierarchy( ydoc.contents, children )
 
@@ -253,6 +254,7 @@ function create_from_yaml_node(d, parentType) {
                               
       break
     case 'PAIR':
+    case 'CONTAINER':
       elt.setAttribute('class','yaml-scalar')
       elt.innerHTML = 
         (d.value == 'SELECT' ? sel :

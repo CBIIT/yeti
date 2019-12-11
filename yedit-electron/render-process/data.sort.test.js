@@ -6,6 +6,7 @@ const ydoci = require('./ydoci.js')
 yf = fs.readFileSync('test.yaml','utf-8')
 yd = yaml.parseDocument(yf)
 ydoci.instrument_ydoc(yd)
+yd._setup()
 
 // yd.__walk( yd.contents, (d) => { console.log(d.type, d.id, d.parent_id,
 //                                             d.key ? d.key.value : (d.value ? d.value : "")) })
@@ -64,6 +65,7 @@ test('sort undo', () => {
 yf = fs.readFileSync('test.yaml','utf-8')
 yd = yaml.parseDocument(yf)
 ydoci.instrument_ydoc(yd)
+yd._setup()
 org_json = yd.toJSON()
 
 test('sort at violette (SEQ)', () => {

@@ -118,10 +118,10 @@ function initialize () {
     }
   })
 
-    app.on('save-file-dialog', (event) => {
+  app.on('save-file-dialog', (event) => {
     if (mainWindow === null) {
       app.emit('activate')
-      app.emit('open-file-dialog')
+      app.emit('save-file-dialog')
     }
     else {
       dialog.showSaveDialog({
@@ -132,6 +132,16 @@ function initialize () {
           mainWindow.webContents.send('selected-save-yaml', pth)
         }
       })
+    }
+  })
+
+  app.on('new-yaml', (event) => {
+    if (mainWindow == null) {
+      app.emit('activate')
+      app.emit('new-yaml')
+    }
+    else {
+      mainWindow.webContents.send('create-new-yaml')
     }
   })
 

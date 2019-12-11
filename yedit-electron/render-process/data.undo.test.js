@@ -6,6 +6,7 @@ const ydoci = require('./ydoci.js')
 yf = fs.readFileSync('test.yaml','utf-8')
 yd = yaml.parseDocument(yf)
 ydoci.instrument_ydoc(yd)
+yd._setup()
 org_json = yd.toJSON()
 
 // get_node_by_id

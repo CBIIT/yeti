@@ -5,6 +5,7 @@ const fs = require('fs')
 const d3 = require('d3')
 
 const d3data = require('../data.js')
+const ydoci = require('../ydoci.js')
 const YAML=require('yaml')
 const {ipcRenderer} = require('electron')
 
@@ -40,6 +41,44 @@ $(function () {
           console.log(`Saved ${pth}`)
         }
       })
+    })
+    .on('create-new-yaml', function (event) {
+      ydoc = new YAML.Document()
+      ydoc.contents = YAML.createNode('SELECT')
+      d3data.render_data(ydoc)
+      yaml_doc_setup()
+      $('#yaml-container').find("option")
+        .filter( function () {
+          return $(this).text().match(/scalar/) ? true : false
+        })
+        .remove()
+      $('#yaml-container').find("select")
+        .off('change')
+        .change( function (e) {
+          $(e.target).closest('div[class^="yaml"]').each(
+            function () {
+              let nd;
+              switch (this.querySelector('select').value) {
+              case 'array':
+                nd = YAML.createNode({ key: 'value' })
+                break
+              case 'object':
+                nd = YAML.createNode(['value'])
+                break
+              default:
+                console.error('Unknown option')
+                return
+              }
+              $('#yaml').find('.insert-here')
+                .children()
+                .remove()
+              ydoc = new YAML.Document()
+              ydoc.contents = nd
+              d3data.render_data(ydoc)
+              yaml_doc_setup()
+            }
+          )
+        })
     })
 })
 
