@@ -352,6 +352,10 @@ function comment_setup() {
         .css('font-size',fsz)
         .css('font-style','italic')
         .trigger('focus')
+        .each( function () {
+          if ($(this).val() == 'add comment')
+            this.setSelectionRange(0, $(this).val().length)
+        })
         .focusout( function () {
           let val = $(this).val()
           $(this).replaceWith(`<span class="yaml-comment-content" data-comment-loc="${loc}">${val}</span>`)
@@ -431,6 +435,7 @@ function open_comment_locations() {
 
 function clean_up_comments () {
   for (let c = comments_to_check.pop(); c ; c = comments_to_check.pop()) {
+    $(c).find('.yaml-comment-mrk').removeAttr('style')
     let content = c.querySelector('.yaml-comment-content').innerHTML
     if ( content == '' || content == 'add comment') {
       c.querySelector('.yaml-comment-content').innerHTML = ''
