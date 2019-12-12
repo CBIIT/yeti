@@ -1,10 +1,8 @@
 const d3 = require('d3')
 const $ = require('jquery')
 const yaml = require('yaml')
-console.log(__dirname, __filename)
 const ydoci = require('./ydoci.js')
 const ytypes = require('yaml/types')
-const _ = require('lodash')
 const {ipcRenderer} = require('electron');
 
 // ydoc isa yaml.Document

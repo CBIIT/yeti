@@ -1,9 +1,6 @@
 const $ = require('jquery')
-const _ = require('lodash')
-const path = require('path')
 const fs = require('fs')
 const d3 = require('d3')
-
 const d3data = require('../data.js')
 const ydoci = require('../ydoci.js')
 const YAML=require('yaml')
