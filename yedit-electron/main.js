@@ -13,7 +13,7 @@ const assets = '/render-process'
 const templates = assets+'/templates'
 const stylesheets = assets+'/stylesheets'
 
-const {app, Menu, shell, dialog, BrowserWindow} = require('electron')
+const {app, Menu, shell, dialog, ipcMain, BrowserWindow} = require('electron')
 
 
 const debug = /--debug/.test(process.argv[2])
@@ -21,6 +21,7 @@ const debug = /--debug/.test(process.argv[2])
 if (process.mas) app.setName('yedit')
 
 let mainWindow = null
+let previewWindow = null
 
 function initialize () {
   makeSingleInstance()
@@ -145,6 +146,31 @@ function initialize () {
     }
   })
 
+  app.on('preview-yaml', (event) => {
+    if (mainWindow == null) {
+      return
+    }
+    else {
+      console.log('sending dispatch-yaml-string')
+      mainWindow.webContents.send('dispatch-yaml-string')
+    }
+  })
+
+  app.on('preview-window', (event, yaml) => {
+    previewWindow = new BrowserWindow({parent:mainWindow, title:"YAML preview", webPreferences: {nodeIntegration:true}});
+    previewWindow
+      .loadFile(path.join(__dirname, templates, "yaml.pug"))
+    previewWindow.on('close', () => { previewWindow = null })    
+  })
+
+  ipcMain.on('yaml-string', (event, yaml) => {
+    console.log('received yaml-string')
+    ipcMain.on('should-be-ready-now', () => {
+      previewWindow.webContents.send('display',yaml)
+    })
+    app.emit('preview-window', yaml)
+  })
+  
   app.on('activate', () => {
     if (mainWindow === null) {
       createWindow()

@@ -80,6 +80,11 @@ $(function () {
           )
         })
     })
+    .on('dispatch-yaml-string', function (event) {
+      console.log('received dispatch-yaml-string')
+      ipcRenderer.send('yaml-string', ydoc.toString())
+    })
+
 })
 
 function yaml_doc_setup () {

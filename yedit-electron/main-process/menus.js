@@ -66,7 +66,12 @@ let template = [
 }, {
   label: 'View',
   submenu: [{
-    label: 'Reload',
+    label: 'Preview YAML',
+    accelerator: 'CmdOrCtrl+Y',
+    click: () => {
+      app.emit('preview-yaml')
+    }
+   }, { label: 'Reload',
     accelerator: 'CmdOrCtrl+R',
     click: (item, focusedWindow) => {
       if (focusedWindow) {
