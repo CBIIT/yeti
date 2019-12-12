@@ -5,6 +5,7 @@ console.log(__dirname, __filename)
 const ydoci = require('./ydoci.js')
 const ytypes = require('yaml/types')
 const _ = require('lodash')
+const {ipcRenderer} = require('electron');
 
 // ydoc isa yaml.Document
 
@@ -193,10 +194,6 @@ function create_from_yaml_node(d, parentType) {
       '<span class="yaml-item-comment"><span class="yaml-comment-mrk"></span><span class="yaml-comment-content" data-comment-loc="on"></span></span>' +
       '<div class="insert-here"></div>'+
       '<span class="yaml-status"></span>'
-    $(elt).find('input')
-      .change( function () {
-        d.key.value = $(this).val()
-      })
     break
   case 'SEQ':
   case 'MAP':
@@ -247,11 +244,6 @@ function create_from_yaml_node(d, parentType) {
                         `<input class="yaml-ptext" value="${d.value}">`) 
       wrap.insertBefore(elt, wrap.querySelector('.yaml-status'))
       elt = wrap
-      $(elt).find('input')
-        .change(function () {
-          d.value = $(this).val()
-        })
-                              
       break
     case 'PAIR':
     case 'CONTAINER':
@@ -260,10 +252,6 @@ function create_from_yaml_node(d, parentType) {
         (d.value == 'SELECT' ? sel :
                        `<input class="yaml-ptext" value="${d.value}"><span class="yaml-scalar-value-ctl"></span>`) +
         '<span class="yaml-item-comment"><span class="yaml-comment-mrk"></span><span class="yaml-comment-content" data-comment-loc="on"></span></span>' 
-      $(elt).find('input')
-        .change( function () {
-          d.value = $(this).val()
-        })
       break
     default:
       console.error(`Can't handle PLAIN scalar at this position`)
@@ -287,6 +275,11 @@ function create_from_yaml_node(d, parentType) {
   for ( let i=0; i<elt.children.length ; i++) {
     elt.children[i].__data__ = d
   }
+  $(elt).find('input')
+    .change( function () {
+      d.value = $(this).val()
+      ipcRenderer.send('dirty')
+    })
   return elt
 }
 

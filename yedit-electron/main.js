@@ -18,6 +18,8 @@ const {app, Menu, shell, dialog, ipcMain, BrowserWindow} = require('electron')
 
 const debug = /--debug/.test(process.argv[2])
 
+var isDirty = false
+
 if (process.mas) app.setName('yedit')
 
 let mainWindow = null
@@ -53,6 +55,29 @@ function initialize () {
       mainWindow.maximize()
       require('devtron').install()
     }
+    mainWindow.on('close', (e)=> {
+      if (isDirty) {
+        let res = dialog.showMessageBox(mainWindow,
+                                        {buttons: ['Proceed', 'Save', 'Cancel'],
+                                         defaultId: 2,
+                                         type: 'warning',
+                                         message: "You have unsaved work; proceed to close?",
+                                         title: 'Sure to close?'})
+        switch (res) {
+        case 2: // cancel
+          e.preventDefault()
+          break
+        case 0: //proceed
+          break
+        case 1: //save
+          e.preventDefault()
+          app.emit('save-file-dialog')
+          break
+        default:
+          console.error("what?")
+        }
+      }
+  })
 
     mainWindow.on('closed', () => {
       mainWindow = null
@@ -125,7 +150,7 @@ function initialize () {
       app.emit('save-file-dialog')
     }
     else {
-      dialog.showSaveDialog({
+      dialog.showSaveDialog(mainWindow, {
         defaultPath: 'out.yaml',
       }, (pth) => {
         if (pth) {
@@ -169,6 +194,20 @@ function initialize () {
       previewWindow.webContents.send('display',yaml)
     })
     app.emit('preview-window', yaml)
+  })
+
+  ipcMain.on('dirty', () => {
+    if (process.platform == 'darwin') {
+      mainWindow.setDocumentEdited(true)
+    }
+    isDirty = true
+  })
+  
+  ipcMain.on('clean', () => {
+    if (process.platform == 'darwin') {
+      mainWindow.setDocumentEdited(false)
+    }
+    isDirty = false
   })
   
   app.on('activate', () => {

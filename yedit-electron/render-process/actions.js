@@ -7,7 +7,7 @@ const d3 = require('d3')
 const d3data = require('../data.js')
 const ydoci = require('../ydoci.js')
 const YAML=require('yaml')
-const {ipcRenderer} = require('electron')
+const {ipcRenderer, dialog} = require('electron')
 
 
 const indent=12
@@ -39,6 +39,7 @@ $(function () {
         }
         else {
           console.log(`Saved ${pth}`)
+          ipcRenderer.send('clean')
         }
       })
     })
@@ -84,7 +85,6 @@ $(function () {
       console.log('received dispatch-yaml-string')
       ipcRenderer.send('yaml-string', ydoc.toString())
     })
-
 })
 
 function yaml_doc_setup () {

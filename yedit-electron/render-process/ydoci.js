@@ -1,5 +1,6 @@
 const yaml = require('yaml')
 const ytypes = require('yaml/types')
+const { ipcRenderer } = require('electron')
 
 // yaml Document mod by id API
 // create_node(obj|arr|scal) - create a new node with an id
@@ -220,7 +221,7 @@ function instrument_ydoc(ydoc) {
       delete this.index[cid]
       undo_this.push( () => { doc.index[cid] = nd } )
     } )
-    if (!no_undo) this._undo_stack.push(undo_this)
+    if (!no_undo) this._undo_stack_push(undo_this)
     return true
   }
   ydoc.insert_at_id = function(id,node,before) {
@@ -275,7 +276,7 @@ function instrument_ydoc(ydoc) {
         undo_this.push( () => { doc.remove_node_by_id(node.id, true) })
       }
     }
-    this._undo_stack.push( undo_this )
+    this._undo_stack_push( undo_this )
     return true
   }
   ydoc.append_to_id = function(id,node,prepend) {
@@ -307,7 +308,7 @@ function instrument_ydoc(ydoc) {
       undo_this.push( () => { doc.remove_node_by_id(node.id, true) })
     }
     node.parent_id = n.id
-    this._undo_stack.push(undo_this)
+    this._undo_stack_push(undo_this)
     return true
   }
   // add a scalar, array or object stub
@@ -355,7 +356,7 @@ function instrument_ydoc(ydoc) {
       console.error("Shouldn't be here")
       return false
     }
-    this._undo_stack.push(undo_this)
+    this._undo_stack_push(undo_this)
     return oldn
   }
   ydoc.delete_and_replace_with_SELECT = function (node_id) {
@@ -413,7 +414,7 @@ function instrument_ydoc(ydoc) {
       undo_this.push( () => { doc.remove_node_by_id(n.id,true) ; p.value = oldn } )
       n.parent_id = p.id
     }
-    this._undo_stack.push(undo_this)
+    this._undo_stack_push(undo_this)
     return true
   }
   
@@ -496,10 +497,10 @@ function instrument_ydoc(ydoc) {
         n.__sorted = 1 // flag to rerender
       }
     })
-    this._undo_stack.push( undo_this )
+    this._undo_stack_push( undo_this )
     return true
   }
-
+  
   ydoc.undo = function () {
     console.debug("Enter ydoci:undo")
     let l = ydoc._undo_stack.pop()
@@ -513,6 +514,11 @@ function instrument_ydoc(ydoc) {
     // reindex
     // this._index_ynode_ids(this.contents)
     return true
+  }
+
+  ydoc._undo_stack_push = function (undo_this) {
+    this._undo_stack.push(undo_this)
+    ipcRenderer.send('dirty')
   }
 }
 
