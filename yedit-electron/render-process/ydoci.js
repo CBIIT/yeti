@@ -620,7 +620,7 @@ function instrument_ydoc(ydoc) {
 
   ydoc._undo_stack_push = function (undo_this) {
     this._undo_stack.push(undo_this)
-    ipcRenderer.send('dirty')
+    ipcRenderer && ipcRenderer.send('dirty')
   }
 }
 

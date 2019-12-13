@@ -1,0 +1,71 @@
+# comment before red
+red:
+  # comment before rojo
+  rojo: 1
+  azul:
+    - a # comment on a
+    # comment after a, before b
+    - b
+    #commenting now
+    - c
+  amarillo: null
+# comment before blue
+blue:
+  # comment after blue
+  blau: 5 # comment on blau
+  rot: 6
+  gelb:
+    # comment before gelb/0
+    # comment before gruen
+    - gruen: 7
+      braun: 8
+    # comment before gelb/1      
+    - schwarz: kopf
+yellow:
+  bleu:
+    - rose
+    - violette
+    - brun
+    - - 1
+      - 2
+      - 3
+    #le moulin
+    - rouge
+    - mapppy: as
+      map2: array
+      map3: elt
+
+# PAIR n1 n0 red
+# PAIR n2 n0 blue
+# PAIR n3 n0 yellow
+# MAP n4 n1 
+# PAIR n5 n4 rojo
+# PAIR n6 n4 azul
+# PAIR n7 n4 amarillo
+# PLAIN n8 n5 1
+# SEQ n9 n6 
+# PLAIN n10 n9 a
+# PLAIN n11 n9 b
+# PLAIN n12 n9 c
+# PLAIN n13 n7 
+# MAP n14 n2 
+# PAIR n15 n14 blau
+# PAIR n16 n14 rot
+# PAIR n17 n14 gelb
+# PLAIN n18 n15 5
+# PLAIN n19 n16 6
+# SEQ n20 n17 
+# MAP n21 n20 
+# MAP n22 n20 
+# PAIR n23 n21 gruen
+# PAIR n24 n21 braun
+# PLAIN n25 n23 7
+# PLAIN n26 n24 8
+# PAIR n27 n22 schwarz
+# PLAIN n28 n27 kopf
+# MAP n29 n3 
+# PAIR n30 n29 bleu
+# SEQ n31 n30 
+# PLAIN n32 n31 rose
+# PLAIN n33 n31 violette
+# PLAIN n34 n31 brun

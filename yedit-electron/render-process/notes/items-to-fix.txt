@@ -1,0 +1,11 @@
+
+- check that keys are unique in maps (after modification)
+
+- keyboard + menu shortcuts for all mouse-based actions
+   - insert element
+   - delete element
+
+- help system
+
+- undos for comments
+

@@ -1,0 +1,22 @@
+Edit script
+
+add object ent -   select scalar
+  - goes to bottom of array, doesn't stay put FIXED
+
+add object ent -   select array
+    - goes to bottom of array FIXED
+    - indents, but doesn't indicate this is a member of the parent array (with a hyphen at parent level)
+    - if you click + control on new selector, you get 2 new element selectors (should be just one)
+       - looks like you get two selectors the new unselected selector is the last child of the array
+
+add object ent -   select object
+    - no dblclick/hider on the new keys created
+
+add array ent -   select scalar
+
+add array ent -   select array
+
+add array ent -   select object
+
+delete all members of an entity- should get a selector in the remaining stub
+

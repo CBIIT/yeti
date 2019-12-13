@@ -1,6 +1,6 @@
 const YAML = require('yaml')
 const ytypes = require('yaml/types')
-const ydoci = require('./ydoci.js')
+const ydoci = require('../ydoci.js')
 
 yd = new YAML.Document()
 yd.contents = YAML.createNode({ this:"that" })

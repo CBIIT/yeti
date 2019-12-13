@@ -1,9 +1,9 @@
 const yaml = require('yaml')
 const ytypes = require('yaml/types')
 const fs = require('fs')
-const ydoci = require('./ydoci.js')
+const ydoci = require('../ydoci.js')
 
-yf = fs.readFileSync('test.yaml','utf-8')
+yf = fs.readFileSync('./test.yaml','utf-8')
 yd = yaml.parseDocument(yf)
 ydoci.instrument_ydoc(yd)
 yd._setup()
