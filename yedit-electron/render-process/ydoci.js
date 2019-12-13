@@ -69,6 +69,102 @@ function instrument_ydoc(ydoc) {
       1;
     }
   }
+
+  ydoc.__reify_nulls = function (n,first) {
+    if (first) {
+      if (n == null) {
+        console.debug("__reify_nulls: Nothing to do")
+        return false
+      }
+      this.__reify_nulls(n)
+    }
+    if (n instanceof ytypes.Pair) {
+      if (n.value == null) {
+        n.value = yaml.createNode('null')
+      }
+      else {
+        this.__reify_nulls(n.value)
+      }
+    }
+    else if (n instanceof ytypes.YAMLMap) {
+      if (n.items == null) {
+        console.log("weird map", n)
+      }
+      else {
+        n.items.forEach( (d) => { this.__reify_nulls(d) })
+      }
+    }
+    else if (n instanceof ytypes.YAMLSeq) {
+      if (n.items == null) {
+        console.log("weird seq", n)
+      }
+      else {
+        for( let i=0; i< n.items.length; i++) {
+          if (n.items[i] == null) {
+            n.items[i] = yaml.createNode('null')
+          }
+          else {
+            this.__reify_nulls(n.items[i])
+          }
+        }
+      }
+    }
+    else if (n instanceof ytypes.Scalar) {
+      if (n.value == null) {
+        n.value = 'null'
+      }
+    }
+    else {
+      console.error("unknown YAML node type")
+      return false
+    }
+    return true
+  }
+
+  ydoc.__liquefy_nulls = function (n) {
+    if (n instanceof ytypes.Pair) {
+      if (n.value instanceof ytypes.Scalar && n.value.value == 'null' ) {
+        n.value = null
+      }
+      else {
+        this.__liquefy_nulls(n.value)
+      }
+    }
+    else if (n instanceof ytypes.YAMLMap) {
+      if (n.items == null) {
+        console.log("weird map", n)
+      }
+      else {
+        n.items.forEach( (d) => { this.__reify_nulls(d) })
+      }
+    }
+    else if (n instanceof ytypes.YAMLSeq) {
+      if (n.items == null) {
+        console.log("weird seq", n)
+      }
+      else {
+        for( let i=0; i< n.items.length; i++) {
+          if (n.items[i] instanceof ytypes.Scalar && n.items[i].value == 'null') {
+            n.items[i].value = null
+          }
+          else {
+            this.__reify_nulls(n.items[i])
+          }
+        }
+      }
+    }
+    else if (n instanceof ytypes.Scalar) {
+      if (n.value == 'null') {
+        n.value = null
+      }
+    }
+    else {
+      console.error("unknown YAML node type")
+      return false
+    }
+    return true
+  }
+
   ydoc._add_ynode_ids = function (node) {
     // node.id = this._idgen.next().value
     this.__walk(node, (n) => {n.id = this._idgen.next().value}, true)
@@ -78,10 +174,14 @@ function instrument_ydoc(ydoc) {
     this.__walk(node, (n) => { let c = this.__children(n) ; if (c) c.forEach( (d) => {  if (d) d.parent_id = n.id } ) },true )
     return true
   }
+
   ydoc._type_ynode = function (node) {
-    add_type(node)
-    this.__walk(node, add_type )
+    this.__walk(node, add_type, true )
     function add_type (n) {
+      if (n == null) {
+        console.error("_type_ynode - got null node")
+        return false
+      }
       if (n.type)
         return
       if (n instanceof ytypes.YAMLMap)
@@ -95,6 +195,7 @@ function instrument_ydoc(ydoc) {
       else
         console.error('bork')
     }
+
     return true
   }
   ydoc._index_ynode_ids = function (node) {
@@ -108,6 +209,7 @@ function instrument_ydoc(ydoc) {
   }
   
   ydoc._setup = function () {
+    this.__reify_nulls(this.contents) // replace nulls with Scalar('null')
     this._type_ynode(this.contents) // must be run before other setup fns
     this._add_ynode_ids(this.contents)
     this._set_parent_ids(this.contents)
