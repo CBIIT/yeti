@@ -64,10 +64,10 @@ $(function () {
             function () {
               let nd;
               switch (this.querySelector('select').value) {
-              case 'array':
+              case 'object':
                 nd = YAML.createNode({ key: 'value' })
                 break
-              case 'object':
+              case 'array':
                 nd = YAML.createNode(['value'])
                 break
               default:
