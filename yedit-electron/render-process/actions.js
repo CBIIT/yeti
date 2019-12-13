@@ -25,7 +25,14 @@ var comments_to_check = [];
 $(function () {
   ipcRenderer
     .on('selected-yaml', function (event, inf) {
-      ydoc = YAML.parseDocument(inf, { prettyErrors: true })
+      try {
+        ydoc = YAML.parseDocument(inf, { prettyErrors: true })
+        console.log(ydoc)
+      }
+      catch (e) {
+        console.error(e)
+        return
+      }
       d3data.render_data(ydoc)
       yaml_doc_setup()
     })

@@ -33,7 +33,7 @@ function initialize () {
       width: 1080,
       minWidth: 680,
       height: 840,
-      title: app.getName(),
+      title: app.name,
       webPreferences: {
         nodeIntegration: true
       }
@@ -57,27 +57,32 @@ function initialize () {
     }
     mainWindow.on('close', (e)=> {
       if (isDirty) {
-        let res = dialog.showMessageBox(mainWindow,
-                                        {buttons: ['Proceed', 'Save', 'Cancel'],
-                                         defaultId: 2,
-                                         type: 'warning',
-                                         message: "You have unsaved work; proceed to close?",
-                                         title: 'Sure to close?'})
-        switch (res) {
-        case 2: // cancel
-          e.preventDefault()
-          break
-        case 0: //proceed
-          break
-        case 1: //save
-          e.preventDefault()
-          app.emit('save-file-dialog')
-          break
-        default:
-          console.error("what?")
-        }
+        e.preventDefault()
+        dialog.showMessageBox(mainWindow,
+                              {buttons: ['Proceed', 'Save', 'Cancel'],
+                               defaultId: 2,
+                               type: 'warning',
+                               message: "You have unsaved work; proceed to close?",
+                               title: 'Sure to close?'})
+          .then( (o) => {
+            res = o.response
+            switch (res) {
+            case 2: // cancel
+              break
+            case 0: //proceed
+              isDirty=false
+              mainWindow.close()
+              break
+            case 1: //save
+              app.emit('save-file-dialog')
+              break
+            default:
+              console.error("what?")
+            }
+          } )
+          .catch( (e) => { console.error(e) })
       }
-  })
+    })
 
     mainWindow.on('closed', () => {
       mainWindow = null
@@ -108,17 +113,13 @@ function initialize () {
     else {
       dialog.showOpenDialog({
         properties: ['openFile'],
-        filters: { name: "YAML Files", extensions: ['yml', 'yaml'] }
-      }, (files) => {
-        if (files) {
-          // let ydoc=null
+        filters: { name: "YAML Files", extensions: ['.yml', '.yaml'] }
+      }).then( (files) => {
+        if (!files.canceled) {
+          file = files.filePaths[0]
           let inf=null
           try {
-            inf = fs.readFileSync(files[0],'utf8')
-            // ydoc = YAML.parseDocument(inf, { prettyErrors: true })
-            // console.info(`${files[0]} parse succeeded`)
-            // add_ynode_ids(ydoc)
-            // console.info(`${files[0]} ids added`)
+            inf = fs.readFileSync(file,'utf8')
           }
           catch (e) {
             let ename = e.name
@@ -140,7 +141,11 @@ function initialize () {
           }
           mainWindow.webContents.send('selected-yaml', inf)
         }
+        else {
+          console.debug("open file dialog cancelled by user")
+        }
       })
+        .catch( (e) => { console.error(e) })
     }
   })
 
@@ -152,12 +157,15 @@ function initialize () {
     else {
       dialog.showSaveDialog(mainWindow, {
         defaultPath: 'out.yaml',
-      }, (pth) => {
-        if (pth) {
-          // let ydoc=null
-          mainWindow.webContents.send('selected-save-yaml', pth)
+      }).then( (files) => {
+        if (!files.canceled) {
+          mainWindow.webContents.send('selected-save-yaml', files.filePath)
+        }
+        else {
+          console.debug("save file dialog canceled by user")
         }
       })
+        .catch( (e) => { console.error(e) })
     }
   })
 
