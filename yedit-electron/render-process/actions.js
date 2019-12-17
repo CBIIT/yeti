@@ -27,7 +27,6 @@ $(function () {
     .on('selected-yaml', function (event, inf) {
       try {
         ydoc = YAML.parseDocument(inf, { prettyErrors: true })
-        console.log(ydoc)
       }
       catch (e) {
         console.error(e)
@@ -42,7 +41,7 @@ $(function () {
           console.error(err)
         }
         else {
-          console.log(`Saved ${pth}`)
+          console.debug(`Saved ${pth}`)
           ipcRenderer.send('clean')
         }
       })
@@ -86,18 +85,18 @@ $(function () {
         })
     })
     .on('dispatch-yaml-string', function (event) {
-      console.log('received dispatch-yaml-string')
       ipcRenderer.send('yaml-string', ydoc.toString())
     })
     .on('undo-yaml-edit', function (event) {
-      console.log('received undo')
-      if (!$( document.activeElement ).is("input")) {
-        undo()
-      }
+      undo()
     })
     .on('sort-level', function (event) {
       if (topent.length) {
+        let elt = document.activeElement;
         if (ydoc.sort_at_id( topent[0].__data__.id )) d3data.update_data(ydoc)
+        if ($(elt).is('input')) {
+          $(elt).trigger('focus')
+        }
       }
     })
     .on('add-comment', function (event) {
@@ -185,6 +184,13 @@ function do_select () {
         .off('change')
         .change( function (e) {
           $(e.target).closest('div[class^="yaml"]').each(do_select)
+        })
+      $(n).find("input")
+        .each( function () {
+          if ( $(this).val().match(/^new_/) ) {
+            $(this).trigger('focus')
+            this.setSelectionRange(0, $(this).val().length)
+          }
         })
     })
   return true
@@ -446,6 +452,7 @@ function clean_up_comments () {
 function undo() {
   console.debug("Enter actions:undo")
   if (ydoc && ydoc.undo()) {
+    let elt = document.activeElement;
     d3data.update_data(ydoc)
       .forEach( function (n) {
         $(n).find("span[class$='control']")
@@ -457,7 +464,10 @@ function undo() {
           .change( function (e) {
             $(e.target).closest('div[class^="yaml"]').each(do_select)
           })
-      })    
+      })
+    if ( document.contains(elt) && $(elt).is('input') ) {
+      $(elt).trigger('focus')
+    }
     return true
   }
   return false

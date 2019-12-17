@@ -226,6 +226,10 @@ function create_from_yaml_node(d, parentType) {
     }
     break
   case 'PLAIN':
+  case 'BLOCK_FOLDED':
+  case 'BLOCK_LITERAL':
+  case 'QUOTE_DOUBLE':
+  case 'QUOTE_SINGLE':
     let scl;
     switch (parentType) {
     case 'SEQ':
@@ -252,7 +256,7 @@ function create_from_yaml_node(d, parentType) {
         '<span class="yaml-item-comment"><span class="yaml-comment-mrk"></span><span class="yaml-comment-content" data-comment-loc="on"></span></span>' 
       break
     default:
-      console.error(`Can't handle PLAIN scalar at this position`)
+      console.error(`Can't handle scalar at this position`)
     }
     break
   default:

@@ -207,7 +207,6 @@ function initialize () {
       return
     }
     else {
-      console.log('sent undo')
       mainWindow.webContents.send('undo-yaml-edit')
     }
   })
