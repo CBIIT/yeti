@@ -89,6 +89,34 @@ $(function () {
       console.log('received dispatch-yaml-string')
       ipcRenderer.send('yaml-string', ydoc.toString())
     })
+    .on('undo-yaml-edit', function (event) {
+      console.log('received undo')
+      if (!$( document.activeElement ).is("input")) {
+        undo()
+      }
+    })
+    .on('sort-level', function (event) {
+      if (topent.length) {
+        if (ydoc.sort_at_id( topent[0].__data__.id )) d3data.update_data(ydoc)
+      }
+    })
+    .on('add-comment', function (event) {
+      let ae = $(document.activeElement)
+      if (ae.is("input")) {
+        ae
+          .each(open_comment_locations)        
+      }
+    })
+    .on('toggle-show-level', function (event) {
+      if (topent.length) {
+        let elt = topent[0]
+        $(elt).find('.insert-here')
+          .children('.yaml-obj-ent')
+          .find('.yaml-obj-val')
+          .fadeToggle()
+      }
+    })
+
 })
 
 function yaml_doc_setup () {
@@ -105,6 +133,7 @@ function yaml_doc_setup () {
   $(".yaml-obj-ent, .yaml-arr-elt").focusin( function (e) {
     e.stopPropagation()
     let ent = this.closest(".yaml-obj, .yaml-arr")
+
     $(ent).addClass("yaml-border-hilite")
     topent.forEach( (elt) => { $(elt).removeClass("yaml-border-hilite") } )
     topent.unshift(ent)
@@ -114,45 +143,6 @@ function yaml_doc_setup () {
     $(topent.shift()).removeClass("yaml-border-hilite")
     if (topent.length) {
       $(topent[0]).addClass("yaml-border-hilite")
-    }
-  })
-  $(document).on("keydown", function (e) {
-    if (e.metaKey || e.ctrlKey) {
-      switch (e.key) {
-      case 'z':
-        if (!$( document.activeElement ).is("input")) {
-          undo()
-        }
-        // else in input elt, regular undo
-      default:
-        return
-      }
-    }
-    else {
-      switch (e.key) {
-      case 'F7': // sort at level
-        if (topent.length) {
-          if (ydoc.sort_at_id( topent[0].__data__.id )) d3data.update_data(ydoc)
-        }
-        break
-      case 'F8': // collapse at level
-        if (topent.length) {
-          let elt = topent[0]
-          $(elt).find('.insert-here')
-            .children('.yaml-obj-ent')
-            .find('.yaml-obj-val')
-            .fadeToggle()
-        }
-        break
-      case 'F12': // open comment locations
-        console.log('hey f12')
-        console.log(e.target)
-        $(e.target)
-          .each(open_comment_locations)
-        break
-      default:
-        return
-      }
     }
   })
 }
@@ -455,7 +445,7 @@ function clean_up_comments () {
 
 function undo() {
   console.debug("Enter actions:undo")
-  if (ydoc.undo()) {
+  if (ydoc && ydoc.undo()) {
     d3data.update_data(ydoc)
       .forEach( function (n) {
         $(n).find("span[class$='control']")

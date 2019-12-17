@@ -39,11 +39,33 @@ let template = [
   submenu: [{
     label: 'Undo',
     accelerator: 'CmdOrCtrl+Z',
-    role: 'undo'
+    role: 'undo',
+  }, {
+    label: 'Undo YAML Edit',
+    accelerator: 'Shift+CmdOrCtrl+Z',
+    role: 'undo-yaml',
+    click: () => {
+      app.emit('undo-yaml-edit');
+    }
   }, {
     label: 'Redo',
     accelerator: 'Shift+CmdOrCtrl+Z',
     role: 'redo'
+  }, { type: 'separator'
+  }, {
+    label: "Sort This Level",
+    accelerator: 'F7',
+    role: 'sort',
+    click: () => {
+      app.emit('sort-level')
+    }
+  }, {
+    label: "Add Comment",
+    accelerator: 'F12',
+    role: 'comment',
+    click: () => {
+      app.emit('add-comment')
+    }
   }, {
     type: 'separator'
   }, {
@@ -71,7 +93,16 @@ let template = [
     click: () => {
       app.emit('preview-yaml')
     }
-   }, { label: 'Reload',
+  }, {
+    label: 'Show/Hide Level',
+    accelerator: 'F8',
+    click: () => {
+      app.emit('toggle-show-level')
+    }
+  }, {
+    type: 'separator'
+  }, {
+    label: 'Reload',
     accelerator: 'CmdOrCtrl+R',
     click: (item, focusedWindow) => {
       if (focusedWindow) {

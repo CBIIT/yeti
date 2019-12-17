@@ -178,7 +178,39 @@ function initialize () {
       mainWindow.webContents.send('create-new-yaml')
     }
   })
-
+  app.on('sort-level', (event) => {
+    if (mainWindow == null) {
+      return
+    }
+    else {
+      mainWindow.webContents.send('sort-level')
+    }
+  })
+  app.on('add-comment', (event) => {
+    if (mainWindow == null) {
+      return
+    }
+    else {
+      mainWindow.webContents.send('add-comment')
+    }
+  })
+  app.on('toggle-show-level', (event) => {
+    if (mainWindow == null) {
+      return
+    }
+    else {
+      mainWindow.webContents.send('toggle-show-level')
+    }
+  })  
+  app.on('undo-yaml-edit', (event) => {
+    if (mainWindow == null) {
+      return
+    }
+    else {
+      console.log('sent undo')
+      mainWindow.webContents.send('undo-yaml-edit')
+    }
+  })
   app.on('preview-yaml', (event) => {
     if (mainWindow == null) {
       return
