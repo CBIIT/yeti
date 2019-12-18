@@ -19,6 +19,7 @@ const {app, Menu, shell, dialog, ipcMain, BrowserWindow} = require('electron')
 const debug = /--debug/.test(process.argv[2])
 
 var isDirty = false
+var fileIsOpen = false
 
 if (process.mas) app.setName('yedit')
 
@@ -48,42 +49,42 @@ function initialize () {
 
     mainWindow.loadURL(path.join('file://', __dirname, templates, '/index.pug'))
     //   mainWindow.loadURL(path.join('file://', __dirname, assets, '/try.html'))
-
     // Launch fullscreen with DevTools open, usage: npm run debug
     if (debug) {
       mainWindow.webContents.openDevTools()
       mainWindow.maximize()
       require('devtron').install()
     }
+    
     mainWindow.on('close', (e)=> {
       if (isDirty) {
         e.preventDefault()
-        dialog.showMessageBox(mainWindow,
-                              {buttons: ['Proceed', 'Save', 'Cancel'],
-                               defaultId: 2,
-                               type: 'warning',
-                               message: "You have unsaved work; proceed to close?",
-                               title: 'Sure to close?'})
-          .then( (o) => {
-            res = o.response
-            switch (res) {
-            case 2: // cancel
-              break
-            case 0: //proceed
-              isDirty=false
-              mainWindow.close()
-              break
-            case 1: //save
-              app.emit('save-file-dialog')
-              break
-            default:
-              console.error("what?")
-            }
-          } )
-          .catch( (e) => { console.error(e) })
+        let res = dialog.showMessageBoxSync(
+          mainWindow,
+          {buttons: ['Proceed', 'Save', 'Cancel'],
+           defaultId: 2,
+           type: 'warning',
+           message: "You have unsaved work; proceed to close?",
+           title: 'Sure to close?'})
+        switch (res) {
+        case 2: // cancel
+          break
+        case 0: //proceed
+          isDirty=false
+          mainWindow.close()
+          break
+        case 1: //save
+          app.emit('save-file-dialog')
+          break
+        default:
+          console.error("what?")
+        }
+      } 
+      else {
+        fileIsOpen = false
+        isDirty = false
       }
     })
-
     mainWindow.on('closed', () => {
       mainWindow = null
     })
@@ -104,6 +105,30 @@ function initialize () {
       app.quit()
     }
   })
+
+  app.on('try-open', (event) => {
+    if (!fileIsOpen) {
+      app.emit('open-file-dialog');
+    }
+    else {
+      dialog.showMessageBoxSync(mainWindow, {
+        type: 'warning',
+        message: "Close current file first."
+      })
+    }
+  })
+
+  app.on('try-new', (event) => {
+    if (!fileIsOpen) {
+      app.emit('new-yaml')
+    }
+    else {
+      dialog.showMessageBoxSync(mainWindow, {
+        type: 'warning',
+        message: "Close current file first."
+      })
+    }
+  })
   
   app.on('open-file-dialog', (event) => {
     if (mainWindow === null) {
@@ -111,41 +136,39 @@ function initialize () {
       app.emit('open-file-dialog')
     }
     else {
-      dialog.showOpenDialog({
+      let files = dialog.showOpenDialogSync(mainWindow, {
         properties: ['openFile'],
-        filters: { name: "YAML Files", extensions: ['.yml', '.yaml'] }
-      }).then( (files) => {
-        if (!files.canceled) {
-          file = files.filePaths[0]
-          let inf=null
-          try {
-            inf = fs.readFileSync(file,'utf8')
-          }
-          catch (e) {
-            let ename = e.name
-            if (ename.match(/^YAML/)) {
-              dialog.showMessageBox(mainWindow, {
-                type:"error",
-                message:`${files[0]} has an ${ename}\nDetails: `+e.message
-              })
-              console.error(e.name, e.message)
-            }
-            else {
-              console.error(e)
-              dialog.showMessageBox(mainWindow, {
-                type:"error",
-                message: `There's a problem: ${ename}\nDetails: `+e.prototype.message
-              })
-            }
-            return
-          }
-          mainWindow.webContents.send('selected-yaml', inf)
-        }
-        else {
-          console.debug("open file dialog cancelled by user")
-        }
+        filters: { name: "YAML Files", extensions: ['yml', 'yaml'] }
       })
-        .catch( (e) => { console.error(e) })
+      if (files) {
+        let file = files[0]
+        let inf=null
+        try {
+          inf = fs.readFileSync(file,'utf8')
+        }
+        catch (e) {
+          let ename = e.name
+          if (ename.match(/^YAML/)) {
+            dialog.showMessageBox(mainWindow, {
+              type:"error",
+              message:`${files[0]} has an ${ename}\nDetails: `+e.message
+            })
+            console.error(e.name, e.message)
+          }
+          else {
+            console.error(e)
+            dialog.showMessageBox(mainWindow, {
+              type:"error",
+              message: `There's a problem: ${ename}\nDetails: `+e.prototype.message
+            })
+          }
+          return
+        }
+        mainWindow.webContents.send('selected-yaml', inf)
+      }
+      else {
+        console.debug("open file dialog cancelled by user")
+      }
     }
   })
 
@@ -155,17 +178,15 @@ function initialize () {
       app.emit('save-file-dialog')
     }
     else {
-      dialog.showSaveDialog(mainWindow, {
+      let file = dialog.showSaveDialogSync(mainWindow, {
         defaultPath: 'out.yaml',
-      }).then( (files) => {
-        if (!files.canceled) {
-          mainWindow.webContents.send('selected-save-yaml', files.filePath)
-        }
-        else {
-          console.debug("save file dialog canceled by user")
-        }
       })
-        .catch( (e) => { console.error(e) })
+      if (file) {
+        mainWindow.webContents.send('selected-save-yaml', file)
+      }
+      else {
+        console.debug("save file dialog canceled by user")
+      }
     }
   })
 
@@ -175,9 +196,12 @@ function initialize () {
       app.emit('new-yaml')
     }
     else {
+      fileIsOpen=true
+      isDirty=true
       mainWindow.webContents.send('create-new-yaml')
     }
   })
+  
   app.on('sort-level', (event) => {
     if (mainWindow == null) {
       return
@@ -215,7 +239,6 @@ function initialize () {
       return
     }
     else {
-      console.log('sending dispatch-yaml-string')
       mainWindow.webContents.send('dispatch-yaml-string')
     }
   })
@@ -227,8 +250,16 @@ function initialize () {
     previewWindow.on('close', () => { previewWindow = null })    
   })
 
+  ipcMain.on('open-success', (event) => {
+    fileIsOpen = true
+    isDirty = false
+  })
+  ipcMain.on('create-success', (event) => {
+    fileIsOpen = true
+    isDirty = false
+  })
+  
   ipcMain.on('yaml-string', (event, yaml) => {
-    console.log('received yaml-string')
     ipcMain.on('should-be-ready-now', () => {
       previewWindow.webContents.send('display',yaml)
     })

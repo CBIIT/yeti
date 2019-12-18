@@ -10,16 +10,17 @@ let template = [
     label: 'New',
     accelerator: 'CmdOrCtrl+N',
     role: 'new',
-    click: () => {
-      app.emit('new-yaml')
+      click: () => {
+        console.log('try-new')
+      app.emit('try-new')
     }
     }, {     
     label: 'Open',
     accelerator: 'CmdOrCtrl+O',
     role: 'open',
-    click: () => {
-      app.emit('open-file-dialog')
-    }
+      click: () => {
+        app.emit('try-open')
+      }
   },
   {
     label: 'Close',

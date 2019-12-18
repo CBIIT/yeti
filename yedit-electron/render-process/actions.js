@@ -4,7 +4,7 @@ const d3 = require('d3')
 const d3data = require('../data.js')
 const ydoci = require('../ydoci.js')
 const YAML=require('yaml')
-const {ipcRenderer, dialog} = require('electron')
+const {ipcRenderer} = require('electron')
 
 
 const indent=12
@@ -25,13 +25,17 @@ var comments_to_check = [];
 $(function () {
   ipcRenderer
     .on('selected-yaml', function (event, inf) {
+      console.log("recieved selected-yaml")
       try {
+        ydoc = null
         ydoc = YAML.parseDocument(inf, { prettyErrors: true })
+        
       }
       catch (e) {
         console.error(e)
         return
       }
+      ipcRenderer.send('open-success')
       d3data.render_data(ydoc)
       yaml_doc_setup()
     })
@@ -83,6 +87,7 @@ $(function () {
             }
           )
         })
+      ipcRenderer.send('create-success')
     })
     .on('dispatch-yaml-string', function (event) {
       ipcRenderer.send('yaml-string', ydoc.toString())
