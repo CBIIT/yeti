@@ -9,7 +9,7 @@ let template = [
     submenu: [{
     label: 'New',
     accelerator: 'CmdOrCtrl+N',
-    role: 'new',
+    //role: 'new',
       click: () => {
         console.log('try-new')
       app.emit('try-new')
@@ -17,7 +17,7 @@ let template = [
     }, {     
     label: 'Open',
     accelerator: 'CmdOrCtrl+O',
-    role: 'open',
+    //role: 'open',
       click: () => {
         app.emit('try-open')
       }
@@ -48,10 +48,6 @@ let template = [
     click: () => {
       app.emit('undo-yaml-edit');
     }
-  }, {
-    label: 'Redo',
-    accelerator: 'Shift+CmdOrCtrl+Z',
-    role: 'redo'
   }, { type: 'separator'
   }, {
     label: 'Delete YAML Item',

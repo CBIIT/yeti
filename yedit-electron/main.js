@@ -45,10 +45,8 @@ function initialize () {
     }
 
     mainWindow = new BrowserWindow(windowOptions)
-    // mainWindow.loadURL(path.join('file://', __dirname, templates, '/index.html'))
 
     mainWindow.loadURL(path.join('file://', __dirname, templates, '/index.pug'))
-    //   mainWindow.loadURL(path.join('file://', __dirname, assets, '/try.html'))
     // Launch fullscreen with DevTools open, usage: npm run debug
     if (debug) {
       mainWindow.webContents.openDevTools()
@@ -97,14 +95,31 @@ function initialize () {
     } catch(e) {
       console.error("Couldn't initialize electron-pug:", e);
     }
-    createWindow()
-    setTimeout( () => {app.emit('open-file-dialog')}, 400) // kludge
+    app.emit('activate')
+    setTimeout( () => {app.emit('open-file-dialog')}, 1500) // kludge
     
   })
 
   app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
-      app.quit()
+      mainWindow=null
+      let res = dialog.showMessageBoxSync({
+	type:"question",
+	buttons:['Open','New','Quit'],
+	message:"Open document, create new one, or quit?",
+	cancelId: 0
+      })
+      switch (res) {
+      case 0: // open
+	app.emit('open-file-dialog')
+	break
+      case 1: // new
+	app.emit('new-yaml')
+	break
+      case 2: // quit
+	app.quit()
+	break
+      }
     }
   })
 
@@ -135,7 +150,7 @@ function initialize () {
   app.on('open-file-dialog', (event) => {
     if (mainWindow === null) {
       app.emit('activate')
-      app.emit('open-file-dialog')
+      setTimeout( () => {app.emit('open-file-dialog')}, 2500) // kludge
     }
     else {
       let files = dialog.showOpenDialogSync(mainWindow, {
@@ -161,7 +176,7 @@ function initialize () {
             console.error(e)
             dialog.showMessageBox(mainWindow, {
               type:"error",
-              message: `There's a problem: ${ename}\nDetails: `+e.prototype.message
+              message: `There\'s a problem: ${ename}\nDetails: `+e.prototype.message
             })
           }
           return
@@ -195,7 +210,7 @@ function initialize () {
   app.on('new-yaml', (event) => {
     if (mainWindow == null) {
       app.emit('activate')
-      app.emit('new-yaml')
+      setTimeout( () => {app.emit('new-yaml')}, 2500) // kludge
     }
     else {
       fileIsOpen=true
@@ -306,6 +321,7 @@ function initialize () {
   })
   
   app.on('activate', () => {
+    console.log('activate')
     if (mainWindow === null) {
       createWindow()
     }
