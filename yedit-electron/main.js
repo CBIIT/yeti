@@ -89,7 +89,7 @@ function initialize () {
       mainWindow = null
     })
   }
-
+  
   app.on('ready', async () => {
     try {
       let pug = await setupPug({}, locals)
@@ -98,6 +98,8 @@ function initialize () {
       console.error("Couldn't initialize electron-pug:", e);
     }
     createWindow()
+    setTimeout( () => {app.emit('open-file-dialog')}, 400) // kludge
+    
   })
 
   app.on('window-all-closed', () => {
