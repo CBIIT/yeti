@@ -54,12 +54,24 @@ let template = [
     role: 'redo'
   }, { type: 'separator'
   }, {
-    label: "Sort This Level",
-    accelerator: 'F7',
-    role: 'sort',
-    click: () => {
-      app.emit('sort-level')
-    }
+    label: 'Delete YAML Item',
+    accelerator: 'Shift+CmdOrCtrl+D',
+    click: () => { app.emit('delete-yaml-item') }
+  }, {
+    label: 'New YAML Item Above',
+    accelerator: 'CmdOrCtrl+<',
+    click: () => { app.emit('insert-yaml-before') }
+   }, {
+     label: 'New YAML Item Below',
+    accelerator: 'CmdOrCtrl+>',
+     click: () => { app.emit('insert-yaml-after') }
+   }, {
+     label: "Sort This Level",
+     accelerator: 'F7',
+     role: 'sort',
+     click: () => {
+         app.emit('sort-level')
+     }
   }, {
     label: "Add Comment",
     accelerator: 'F12',

@@ -25,7 +25,6 @@ var comments_to_check = [];
 $(function () {
   ipcRenderer
     .on('selected-yaml', function (event, inf) {
-      console.log("recieved selected-yaml")
       try {
         ydoc = null
         ydoc = YAML.parseDocument(inf, { prettyErrors: true })
@@ -91,6 +90,24 @@ $(function () {
     })
     .on('dispatch-yaml-string', function (event) {
       ipcRenderer.send('yaml-string', ydoc.toString())
+    })
+    .on('insert-yaml-before', function (event) {
+      ae = document.activeElement;
+      if (!$(ae).is('input'))
+        return;
+      do_indel(ae, true, true)
+    })
+    .on('insert-yaml-after', function (event) {
+      ae = document.activeElement;
+      if (!$(ae).is('input'))
+        return;
+      do_indel(ae, true, false)
+    })
+    .on('delete-yaml-item', function (event) {
+      ae = document.activeElement;
+      if (!$(ae).is('input'))
+        return;
+      do_indel(ae,false)
     })
     .on('undo-yaml-edit', function (event) {
       undo()
@@ -209,6 +226,51 @@ function do_sort () {
   // else ignore
 }
 
+function do_indel (elt,ins,above) {
+  let cls;
+  let item = $(elt).closest('.yaml-obj-ent, .yaml-arr-elt')
+  if (item.hasClass('yaml-obj-ent'))
+    cls='yaml-obj-ent'
+  if (item.hasClass('yaml-arr-elt'))
+    cls='yaml-arr-elt'
+
+  let node_id = $(elt.closest('[data-node-id]')).attr('data-node-id') 
+  if (ins) {
+    switch (cls) {
+    case 'yaml-obj-ent':
+      insert_obj_ent(node_id,above)
+      break
+    case 'yaml-arr-elt':
+      insert_arr_elt( node_id,above)
+      break
+    default:
+      break
+    }
+  }
+  else { // delete
+    $(elt).trigger('mouseout')
+    ydoc.delete_and_replace_with_SELECT(node_id)
+  }
+  d3data.update_data(ydoc)
+    .forEach( function (n) {
+      $(n).find("span[class$='control']")
+        .each( edit_control_setup )
+      $(n).find("span[class$='scalar-value-ctl']")
+        .each( scalar_control_setup )
+      $(n).find("[class$='comment']")
+        .each( comment_setup )
+      $(n).find("select")
+        .off('change') // make sure there is only one handler (a kludge)
+        .change( function (e) {
+          $(this).closest('div[class^="yaml"]').each(do_select)
+        })
+    })
+  // clean up kludge
+  if (!$(this).parent().find('[data-node-id]').length) {
+    $(this).parent().remove()
+  }
+}
+
 function hider (e) {
   e.stopPropagation()
   let tgt = e.target
@@ -269,28 +331,18 @@ function edit_control_setup () {
     .click( (e) => {
       e.preventDefault()
       let new_nodes = []
-      let node_id = ( cls == 'yaml-obj-ent' ?
-                      $(e.target.closest('[data-node-id]')).attr('data-node-id') :
-                      // yaml-arr-elt
-                      $(e.target).parent().find('[data-node-id]').attr('data-node-id') )
+      let tgt = ( cls == 'yaml-obj-ent' ?
+                  $(e.target.closest('[data-node-id]')): 
+                  // yaml-arr-elt
+                  $(e.target).parent().find('[data-node-id]'))
       if ([icon.ins_above,icon.ins_below].indexOf($(e.target).text()) >= 0 ) {
         let bef = ($(e.target).text() == icon.ins_above ? true : false)
-	switch (cls) {
-	case 'yaml-obj-ent':
-          insert_obj_ent(node_id,bef)
-	  break
-	case 'yaml-arr-elt':
-          insert_arr_elt( node_id,bef)
-	  break
-	default:
-	  break
-	}
+        do_indel(tgt.get(0),true,bef)
       }
       else if ($(e.target).text() == icon.del) {
         $(e.target).trigger('mouseout')
-        ydoc.delete_and_replace_with_SELECT(node_id)
- 
-      }
+        do_indel(tgt.get(0),false)
+       }
       d3data.update_data(ydoc)
         .forEach( function (n) {
           $(n).find("span[class$='control']")

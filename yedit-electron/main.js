@@ -203,7 +203,30 @@ function initialize () {
       mainWindow.webContents.send('create-new-yaml')
     }
   })
-  
+  app.on('insert-yaml-before', (event) => {
+    if (mainWindow == null) {
+      return
+    }
+    else {
+      mainWindow.webContents.send('insert-yaml-before')
+    }
+  })
+  app.on('insert-yaml-after', (event) => {
+    if (mainWindow == null) {
+      return
+    }
+    else {
+      mainWindow.webContents.send('insert-yaml-after')
+    }
+  })
+  app.on('delete-yaml-item', (event) => {
+    if (mainWindow == null) {
+      return
+    }
+    else {
+      mainWindow.webContents.send('delete-yaml-item')
+    }
+  })
   app.on('sort-level', (event) => {
     if (mainWindow == null) {
       return
