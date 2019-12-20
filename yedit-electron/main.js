@@ -98,7 +98,9 @@ function initialize () {
       console.error("Couldn't initialize electron-pug:", e);
     }
     createWindow()
-    setTimeout( () => {app.emit('open-file-dialog')}, 400) // kludge
+    app.once('setup-done', () => {
+      app.emit('open-file-dialog')
+    })
     
   })
 
@@ -135,7 +137,9 @@ function initialize () {
   app.on('open-file-dialog', (event) => {
     if (mainWindow === null) {
       app.emit('activate')
-      app.emit('open-file-dialog')
+      app.once('setup-done', () => {
+        app.emit('open-file-dialog')
+      })
     }
     else {
       let files = dialog.showOpenDialogSync(mainWindow, {
@@ -177,7 +181,9 @@ function initialize () {
   app.on('save-file-dialog', (event) => {
     if (mainWindow === null) {
       app.emit('activate')
-      app.emit('save-file-dialog')
+      app.once('setup-done', () => {
+        app.emit('save-file-dialog')
+      })
     }
     else {
       let file = dialog.showSaveDialogSync(mainWindow, {
@@ -195,7 +201,9 @@ function initialize () {
   app.on('new-yaml', (event) => {
     if (mainWindow == null) {
       app.emit('activate')
-      app.emit('new-yaml')
+      app.once('setup-done', () => {
+        app.emit('new-yaml')
+      })
     }
     else {
       fileIsOpen=true
@@ -274,7 +282,10 @@ function initialize () {
       .loadFile(path.join(__dirname, templates, "yaml.pug"))
     previewWindow.on('close', () => { previewWindow = null })    
   })
-
+  
+  ipcMain.on('setup-done', (event) => {
+    app.emit('setup-done')
+  })
   ipcMain.on('open-success', (event) => {
     fileIsOpen = true
     isDirty = false
@@ -285,10 +296,11 @@ function initialize () {
   })
   
   ipcMain.on('yaml-string', (event, yaml) => {
-    ipcMain.on('should-be-ready-now', () => {
+    ipcMain.once('setup-done', () => {
       previewWindow.webContents.send('display',yaml)
     })
     app.emit('preview-window', yaml)
+
   })
 
   ipcMain.on('dirty', () => {

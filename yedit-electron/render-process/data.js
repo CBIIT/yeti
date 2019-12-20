@@ -279,7 +279,12 @@ function create_from_yaml_node(d, parentType) {
   }
   $(elt).find('input')
     .change( function () {
-      d.value = $(this).val()
+      if ( $(this).hasClass('yaml-obj-key') ) {
+        d.key.value = $(this).val()
+      }
+      else if ( $(this).hasClass('yaml-ptext') ) {
+        d.value = $(this).val()
+      }
       ipcRenderer.send('dirty')
     })
   return elt
