@@ -28,7 +28,6 @@ $(function () {
       try {
         ydoc = null
         ydoc = YAML.parseDocument(inf, { prettyErrors: true })
-        
       }
       catch (e) {
         console.error(e)
@@ -50,42 +49,7 @@ $(function () {
       })
     })
     .on('create-new-yaml', function (event) {
-      ydoc = new YAML.Document()
-      ydoc.contents = YAML.createNode('SELECT')
-      d3data.render_data(ydoc)
-      yaml_doc_setup()
-      $('#yaml-container').find("option")
-        .filter( function () {
-          return $(this).text().match(/scalar/) ? true : false
-        })
-        .remove()
-      $('#yaml-container').find("select")
-        .off('change')
-        .change( function (e) {
-          $(e.target).closest('div[class^="yaml"]').each(
-            function () {
-              let nd;
-              switch (this.querySelector('select').value) {
-              case 'object':
-                nd = YAML.createNode({ key: 'value' })
-                break
-              case 'array':
-                nd = YAML.createNode(['value'])
-                break
-              default:
-                console.error('Unknown option')
-                return
-              }
-              $('#yaml').find('.insert-here')
-                .children()
-                .remove()
-              ydoc = new YAML.Document()
-              ydoc.contents = nd
-              d3data.render_data(ydoc)
-              yaml_doc_setup()
-            }
-          )
-        })
+      create_new_yaml()
       ipcRenderer.send('create-success')
     })
     .on('dispatch-yaml-string', function (event) {
@@ -137,9 +101,50 @@ $(function () {
           .fadeToggle()
       }
     })
-
+  ipcRenderer.send('setup-done')
 })
 
+function create_new_yaml () {
+  ydoc = new YAML.Document()
+  ydoc.contents = YAML.createNode('SELECT')
+  d3data.render_data(ydoc)
+  yaml_doc_setup()
+  $('#yaml-container').find("option")
+    .filter( function () {
+      return $(this).text().match(/scalar/) ? true : false
+    })
+    .remove()
+  $('#yaml-container').find("select")
+    .off('change')
+    .change( function (e) {
+      $(e.target).closest('div[class^="yaml"]').each(
+        function () {
+          let nd;
+          switch (this.querySelector('select').value) {
+          case 'object':
+            nd = YAML.createNode({ key: 'SELECT' })
+            break
+          case 'array':
+            nd = YAML.createNode(['SELECT'])
+            break
+          default:
+            console.error('Unknown option')
+            return
+          }
+          $('#yaml').find('.insert-here')
+            .children()
+            .remove()
+          ydoc = new YAML.Document()
+          ydoc.contents = nd
+          d3data.render_data(ydoc)
+          // kludge
+          
+          yaml_doc_setup()
+        }
+      )
+    })
+
+}
 function yaml_doc_setup () {
   $(".yaml-obj-key")
     .dblclick( hider )
@@ -166,6 +171,12 @@ function yaml_doc_setup () {
       $(topent[0]).addClass("yaml-border-hilite")
     }
   })
+  $("select")
+    .off('change')
+    .change( function (e) {
+      $(e.target).closest('div[class^="yaml"]').each(do_select)
+    })
+  
 }
 
 function insert_obj_ent (sib_id, before) {
