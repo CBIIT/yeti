@@ -1,6 +1,4 @@
-# yeti
-
-![yeti logo](./render-process/assets/yeti-0.25.png)
+# ![yeti logo](./render-process/assets/yeti-0.25.png)
 
 _Under Construction_
 
