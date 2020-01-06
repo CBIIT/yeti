@@ -12,6 +12,7 @@ const locals = {}
 const assets = '/render-process'
 const templates = assets+'/templates'
 const stylesheets = assets+'/stylesheets'
+const splashTime = 3000
 
 const {app, Menu, shell, dialog, ipcMain, BrowserWindow} = require('electron')
 
@@ -43,7 +44,7 @@ function initialize () {
     if (process.platform === 'linux') {
       //      windowOptions.icon = path.join(__dirname, '/assets/app-icon/png/512.png')
     }
-
+    
     mainWindow = new BrowserWindow(windowOptions)
 
     mainWindow.loadURL(path.join('file://', __dirname, templates, '/index.pug'))
@@ -53,7 +54,7 @@ function initialize () {
       mainWindow.maximize()
       require('devtron').install()
     }
-    
+
     mainWindow.on('close', (e)=> {
       if (isDirty) {
         e.preventDefault()
@@ -87,6 +88,7 @@ function initialize () {
       mainWindow = null
     })
   }
+  var splash;
   
   app.on('ready', async () => {
     try {
@@ -95,13 +97,31 @@ function initialize () {
     } catch(e) {
       console.error("Couldn't initialize electron-pug:", e);
     }
-    createWindow()
+    splash = new BrowserWindow(
+      {show:false, height:450, width:525,
+       resizable:false, movable:false, skipTaskbar:true,
+     transparent: false, frame: false, alwaysOnTop: true})
+    splash.loadURL(path.join('file://', __dirname, templates, '/splash.pug'))
+
+    app.emit('splash')
+    setTimeout( () => { app.emit('activate'); app.emit('splash-off'); }, splashTime)
+
     app.once('setup-done', () => {
       app.emit('open-file-dialog')
     })
     
   })
-
+  app.on('splash', () => {
+    splash.show()
+    console.log('showing splash')
+  })
+  
+  app.on('splash-off', (win) => {
+    splash.destroy()
+    splash = null
+    console.log('splash destroyed')
+  })
+  
   app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
       mainWindow=null
