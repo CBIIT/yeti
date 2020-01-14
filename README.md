@@ -34,8 +34,8 @@ key sorting and other features that editor plugins do not always have.
 _yeti_ is an [Electron](https://electronjs.org)-based stand-alone
 application. Download and install the package for your system:
 
-* MacOS:  https://bintray.com/majensen0/yeti/download_file?file_path=yeti-0.1.0.dmg  [SHA1](./dist/yeti-0.1.0.dmg.sha1)
-* Windows: https://bintray.com/majensen0/yeti/download_file?file_path=yeti-0.1.0-win.zip [SHA1](./dist/yeti-0.1.0-win.zip.sha1)
+| MacOS | https://bintray.com/majensen0/yeti/download_file?file_path=yeti-0.1.0.dmg |  [SHA1](./dist/yeti-0.1.0.dmg.sha1) |
+| Windows | https://bintray.com/majensen0/yeti/download_file?file_path=yeti-0.1.0-win.zip | [SHA1](./dist/yeti-0.1.0-win.zip.sha1) |
 
 # Tutorial
 
