@@ -39,9 +39,13 @@ application. Download and install the package for your system:
 | MacOS | https://bintray.com/majensen0/yeti/download_file?file_path=yeti-0.1.0.dmg |  [SHA1](./dist/yeti-0.1.0.dmg.sha1) |
 | Windows | https://bintray.com/majensen0/yeti/download_file?file_path=yeti-0.1.0-win.zip | [SHA1](./dist/yeti-0.1.0-win.zip.sha1) |
 
+# Bugs and Feature Requests
+
+Please report bugs and make feature requests as [Issues](https://github.com/CBIIT/yeti/issues) on this repository.
+
 # Tutorial
 
-TBD
+
 
 
 
