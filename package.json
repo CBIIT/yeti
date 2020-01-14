@@ -20,7 +20,7 @@
       "hardenedRuntime":true
     },
     "win": {
-      "target":"nsis",
+      "target":"zip",
       "icon":"assets/app-icon/win/yeti-256x256.ico"
     }
   },
