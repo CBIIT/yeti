@@ -2,7 +2,7 @@
 
 _Under Construction_
 
-Data object editor with YAML-like presentation.
+# yeti - YAML Editing Text Interface
 
 Stand-alone app via [Electron](https://electronjs.org/) framework.
 
