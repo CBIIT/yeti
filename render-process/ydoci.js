@@ -510,7 +510,7 @@ function instrument_ydoc(ydoc) {
       }
 
     }
-    else if (p.type == 'PAIR' && ntype == 'PLAIN') {
+    else if (p.type == 'PAIR' && (ntype == 'PLAIN' || p.value == 'null')) {
       let n = this.create_node('SELECT')
       p.value = n
       undo_this.push( () => { doc.remove_node_by_id(n.id,true) ; p.value = oldn } )
