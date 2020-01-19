@@ -412,7 +412,7 @@ function comment_setup() {
       let comment_elt = this
       let txt = $(this).find('.yaml-comment-content').text()
       let loc = $(this).find('.yaml-comment-content').attr('data-comment-loc')
-      let d_id = this.__data__.id
+      let d_id = $(this).hasClass('yaml-doc-comment') ? null : this.__data__.id
       if (!txt)
         return
       let ht = $(this).height()
@@ -433,7 +433,7 @@ function comment_setup() {
           let val = $(this).val()
           $(this).replaceWith(`<span class="yaml-comment-content" data-comment-loc="${loc}">${val}</span>`)
           // update data structure
-          let nd = ydoc.get_node_by_id(d_id)
+          let nd = d_id ? ydoc.get_node_by_id(d_id) : ydoc
           switch (loc) {
           case 'before':
             nd.commentBefore = val

@@ -47,7 +47,7 @@ function render_data(ydoc) {
         else if (cls.includes('yaml-arr-elt insert-here'))
           this.className = 'yaml-arr-elt-val'
       } )
-      .selectAll(`div[data-node-id=${d.id}`) // this one doesn't yet
+      .selectAll(`div[data-node-id=${d.id}]`) // this one doesn't yet
       .data([d], dd => dd.id)
       .enter()
       .append(
@@ -64,6 +64,16 @@ function render_data(ydoc) {
         }
       )
   })
+  if (ydoc.commentBefore) {
+    let c = document.querySelector('.yaml-doc-comment [data-comment-loc="before"]')
+    c.previousSibling.innerHTML = "# ";
+    c.innerHTML=ydoc.commentBefore;
+  }
+  if (ydoc.comment) {
+    let c = document.querySelector('.yaml-doc-comment [data-comment-loc="on"]')
+    c.previousSibling.innerHTML = "# ";
+    c.innerHTML=ydoc.comment;
+  }
 }
 
 // update current document and return list of new dom nodes
@@ -202,7 +212,7 @@ function create_from_yaml_node(d, parentType) {
     }
     switch (parentType) {
     case 'CONTAINER':
-      elt.innerHTML = '<span class="insert-here"></span>'
+      elt.innerHTML = '<span class="insert-here"></span>' 
       break
     case 'PAIR':
       elt.innerHTML = 

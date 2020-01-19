@@ -113,13 +113,11 @@ function initialize () {
   })
   app.on('splash', () => {
     splash.show()
-    console.log('showing splash')
   })
   
   app.on('splash-off', (win) => {
     splash.destroy()
     splash = null
-    console.log('splash destroyed')
   })
   
   app.on('window-all-closed', () => {
@@ -353,7 +351,6 @@ function initialize () {
   })
   
   app.on('activate', () => {
-    console.log('activate')
     if (mainWindow === null) {
       createWindow()
     }
