@@ -103,7 +103,7 @@ To sort object entries alphabetically by their keys (within a single object), cl
 
 To modify an existing comment, click on the comment text. The comment will appear within an editable text box. Click out of the text box to close the comment.
 
-![comment](](./docs/screenshots/yeti-comment.png)
+![comment](./docs/screenshots/yeti-comment.png)
 
 To add a comment near a given position in the document, click in a text box and select _Edit_ > _Add Comment_ (F12). A number of possible comment positions will appear, indicated by the pound character (#). Click on the desired position and enter the comment as desired. The unused positions will disappear after clicking away from the text box.
 
