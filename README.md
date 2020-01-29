@@ -81,8 +81,7 @@ The control changes to an arrow indicating where the new element will appear. Cl
 
 The new element will appear as a `select` dropdown. Choose the item type to insert.
 
-![select dropdown activated](./docs/screenshots/yeti-insert-2.png)
-![result of selection](./docs/screenshots/yeti-insert-3.png)
+![select dropdown activated/result of selection](./docs/screenshots/yeti-insert.png)
 
 ### Update Items
 
@@ -92,8 +91,7 @@ To update text items, place the cursor in the text box and edit as usual.
 
 To delete an item, hold down Cntl or Cmd while clicking the control. The control changes appearance to indicate delete mode.
 
-![delete item](./docs/screenshots/yeti-delete-1.png)
-![deleted item leaves selector in its place](./docs/screenshots/yeti-delete-2.png)
+![delete item](./docs/screenshots/yeti-delete.png)
 
 ### Sort Items
 
@@ -105,9 +103,11 @@ To sort object entries alphabetically by their keys (within a single object), cl
 
 To modify an existing comment, click on the comment text. The comment will appear within an editable text box. Click out of the text box to close the comment.
 
+![comment](](./docs/screenshots/yeti-comment.png)
+
 To add a comment near a given position in the document, click in a text box and select _Edit_ > _Add Comment_ (F12). A number of possible comment positions will appear, indicated by the pound character (#). Click on the desired position and enter the comment as desired. The unused positions will disappear after clicking away from the text box.
 
-![comment entry before/after]()
+![comment add comment](./docs/screenshots/yeti-add-comment.png)
 
 ### Undo Changes
 
