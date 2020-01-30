@@ -119,11 +119,11 @@ _Edit_ > _Undo YAML Edit_ (Ctrl- or Cmd-Shift-Z) will undo YAML structural edits
 
 To show or hide elements below an object key, double click that object key. An ellipsis (...) will appear to indicate the presence of hidden content.
 
-![example of object value hiding]()
+![example of object value hiding](./docs/screenshots/yeti-click-hide.png)
 
 To show or hide all elements at or below a document level, click into a text box (scalar or object key) at the desired level and select _View_ > _Select / Hide Level_ (F8).
 
-![example of document level hiding]()
+![example of document level hiding](./docs/screenshots/yeti-hide-level.png)
 
 ### Preview Document
 
