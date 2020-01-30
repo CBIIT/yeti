@@ -57,19 +57,19 @@ $(function () {
     })
     .on('insert-yaml-before', function (event) {
       ae = document.activeElement;
-      if (!$(ae).is('input'))
+      if (!($(ae).is('input') || $(ae).hasClass('yaml-ptext')) )
         return;
       do_indel(ae, true, true)
     })
     .on('insert-yaml-after', function (event) {
       ae = document.activeElement;
-      if (!$(ae).is('input'))
+      if (!($(ae).is('input') || $(ae).hasClass('yaml-ptext')) )
         return;
       do_indel(ae, true, false)
     })
     .on('delete-yaml-item', function (event) {
       ae = document.activeElement;
-      if (!$(ae).is('input'))
+      if (!($(ae).is('input') || $(ae).hasClass('yaml-ptext')) )
         return;
       do_indel(ae,false)
     })
@@ -80,14 +80,14 @@ $(function () {
       if (topent.length) {
         let elt = document.activeElement;
         if (ydoc.sort_at_id( topent[0].__data__.id )) d3data.update_data(ydoc)
-        if ($(elt).is('input')) {
+        if ($(elt).is('input') || $(elt).hasClass('yaml-ptext')) {
           $(elt).trigger('focus')
         }
       }
     })
     .on('add-comment', function (event) {
       let ae = $(document.activeElement)
-      if (ae.is("input")) {
+      if (ae.is("input") || ae.hasClass('yaml-ptext')) {
         ae
           .each(open_comment_locations)        
       }
@@ -218,7 +218,7 @@ function do_select () {
         .change( function (e) {
           $(e.target).closest('div[class^="yaml"]').each(do_select)
         })
-      $(n).find("input")
+      $(n).find("input, .yaml-ptext")
         .each( function () {
           if ( $(this).val().match(/^new_/) ) {
             $(this).trigger('focus')
@@ -452,8 +452,8 @@ function comment_setup() {
 
 function open_comment_locations() {
   console.debug("Enter actions:open_comment_locations")
-  // only work on input elements
-  if (this.tagName != 'INPUT') {
+  // only work on input elements or ptext scalars
+  if (!($(this).is('input') || $(this).hasClass('yaml-ptext'))) {
     return false
   }
   let belongs = this.closest('.yaml-obj,.yaml-arr')
@@ -533,7 +533,7 @@ function undo() {
             $(e.target).closest('div[class^="yaml"]').each(do_select)
           })
       })
-    if ( document.contains(elt) && $(elt).is('input') ) {
+    if ( document.contains(elt) && ($(elt).is('input') || $(elt).hasClass('yaml-ptext')) ) {
       $(elt).trigger('focus')
     }
     return true

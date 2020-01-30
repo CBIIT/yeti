@@ -253,7 +253,7 @@ function create_from_yaml_node(d, parentType) {
         '<span class="yaml-arr-elt-control"></span>' +
         '<span class="yaml-item-comment"><span class="yaml-comment-mrk"></span><span class="yaml-comment-content" data-comment-loc="on"></span></span>'
       elt.innerHTML = ( d.value == 'SELECT' ? sel :
-                        `<input class="yaml-ptext" value="${d.value}">`) 
+                        `<textarea class="yaml-ptext">${d.value}</textarea>`) 
       wrap.insertBefore(elt, wrap.querySelector('.yaml-status'))
       elt = wrap
       break
@@ -262,7 +262,7 @@ function create_from_yaml_node(d, parentType) {
       elt.setAttribute('class','yaml-scalar')
       elt.innerHTML = 
         (d.value == 'SELECT' ? sel :
-                       `<input class="yaml-ptext" value="${d.value}"><span class="yaml-scalar-value-ctl"></span>`) +
+                       `<textarea class="yaml-ptext">${d.value}</textarea><span class="yaml-scalar-value-ctl"></span>`) +
         '<span class="yaml-item-comment"><span class="yaml-comment-mrk"></span><span class="yaml-comment-content" data-comment-loc="on"></span></span>' 
       break
     default:
@@ -287,13 +287,13 @@ function create_from_yaml_node(d, parentType) {
   for ( let i=0; i<elt.children.length ; i++) {
     elt.children[i].__data__ = d
   }
-  $(elt).find('input')
+  $(elt).find('input, textarea')
     .change( function () {
       if ( $(this).hasClass('yaml-obj-key') ) {
         d.key.value = $(this).val()
       }
       else if ( $(this).hasClass('yaml-ptext') ) {
-        d.value = $(this).val()
+        d.value = $(this).text()
       }
       ipcRenderer.send('dirty')
     })

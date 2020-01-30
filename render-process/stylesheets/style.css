@@ -68,6 +68,10 @@ a {
     display: inline;
 }
 .yaml-arr-elt {
+    margin:3px;
+}
+.yaml-obj-ent {
+    margin:3px;
 }
 .yaml-obj-key {
     color: darkred;
@@ -77,6 +81,12 @@ a {
 }
 .yaml-obj-sc-val {
     display: inline;
+}
+.yaml-ptext {
+    font: inherit;
+    height: 19px;
+    position: relative;
+    top:6px;
 }
 .yaml-obj-sc-val > .yaml-ptext {
     color: blue;
