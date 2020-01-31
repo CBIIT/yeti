@@ -293,7 +293,7 @@ function create_from_yaml_node(d, parentType) {
         d.key.value = $(this).val()
       }
       else if ( $(this).hasClass('yaml-ptext') ) {
-        d.value = $(this).text()
+        d.value = $(this).val()
       }
       ipcRenderer.send('dirty')
     })
