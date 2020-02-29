@@ -38,7 +38,7 @@ $(function () {
       yaml_doc_setup()
     })
     .on('selected-save-yaml', function (event, pth) {
-      fs.writeFile(pth, ydoc.toString(), {encoding:'utf8',flag:'w'}, (err) => {
+      fs.writeFile(pth, ydoc.toString().replace(/"true"/,'true').replace(/"false"/,'false'), {encoding:'utf8',flag:'w'}, (err) => {
         if (err) {
           console.error(err)
         }
@@ -53,7 +53,7 @@ $(function () {
       ipcRenderer.send('create-success')
     })
     .on('dispatch-yaml-string', function (event) {
-      ipcRenderer.send('yaml-string', ydoc.toString())
+      ipcRenderer.send('yaml-string', ydoc.toString().replace(/"true"/,'true').replace(/"false"/,'false'))
     })
     .on('insert-yaml-before', function (event) {
       ae = document.activeElement;

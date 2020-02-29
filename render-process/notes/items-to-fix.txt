@@ -7,4 +7,3 @@
 
 - fix undos for new document
 
-- expand scalar text boxes to whole text on click

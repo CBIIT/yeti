@@ -134,12 +134,3 @@ To preview the YAML that will be saved, select _View_ > _Preview YAML_ (Ctrl- or
 ## Save / Close
 
 Save or close the document by selecting _File_ > _Save_ (Ctrl- or Cmd-S) or _File_ > _Close_ (Ctrl- or Cmd-W) as usual.
-
-
-
-
-
-
-
-
-

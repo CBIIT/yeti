@@ -1,5 +1,9 @@
 const {BrowserWindow, Menu, app, shell, dialog} = require('electron')
+const _=require('lodash')
 const os = require('os')
+const debug = _.find(process.argv, '--debug')
+
+console.log("HEY DUDE", _.find(process.argv, '--debug'))
 
 menu_template = null
 
@@ -111,21 +115,6 @@ let template = [
   }, {
     type: 'separator'
   }, {
-    label: 'Reload',
-    accelerator: 'CmdOrCtrl+R',
-    click: (item, focusedWindow) => {
-      if (focusedWindow) {
-        // on reload, start fresh and close any old
-        // open secondary windows
-        if (focusedWindow.id === 1) {
-          BrowserWindow.getAllWindows().forEach(win => {
-            if (win.id > 1) win.close()
-          })
-        }
-        focusedWindow.reload()
-      }
-    }
-  }, {
     label: 'Toggle Full Screen',
     accelerator: (() => {
       if (process.platform === 'darwin') {
@@ -137,20 +126,6 @@ let template = [
     click: (item, focusedWindow) => {
       if (focusedWindow) {
         focusedWindow.setFullScreen(!focusedWindow.isFullScreen())
-      }
-    }
-  }, {
-    label: 'Toggle Developer Tools',
-    accelerator: (() => {
-      if (process.platform === 'darwin') {
-        return 'Alt+Command+I'
-      } else {
-        return 'Ctrl+Shift+I'
-      }
-    })(),
-    click: (item, focusedWindow) => {
-      if (focusedWindow) {
-        focusedWindow.toggleDevTools()
       }
     }
   }]
@@ -180,12 +155,51 @@ let template = [
   label: 'Help',
   role: 'help',
   submenu: [{
-    label: 'Learn More',
+    label: 'yeti Tutorial',
     click: () => {
-      shell.openExternal('http://electron.atom.io')
+      shell.openExternal('https://github.com/CBIIT/yeti#tutorial')
     }
   }]
 }]
+
+let devtools_tmpl = {
+  label: 'Dev Tools',
+  submenu: [{
+    label: 'Reload',
+    accelerator: 'CmdOrCtrl+R',
+    click: (item, focusedWindow) => {
+      if (focusedWindow) {
+        // on reload, start fresh and close any old
+        // open secondary windows
+        if (focusedWindow.id === 1) {
+          BrowserWindow.getAllWindows().forEach(win => {
+            if (win.id > 1) win.close()
+          })
+        }
+        focusedWindow.reload()
+      }
+    }
+  },{  
+    label: 'Toggle Developer Tools',
+    accelerator: (() => {
+      if (process.platform === 'darwin') {
+        return 'Alt+Command+I'
+      } else {
+        return 'Ctrl+Shift+I'
+      }
+    })(),
+    click: (item, focusedWindow) => {
+      if (focusedWindow) {
+        focusedWindow.toggleDevTools()
+      }
+    }
+  }]
+};
+
+if (debug) {
+  let n = _.findIndex(template, function(i){ i.label == 'Window' })
+  template.splice(n,0,devtools_templ)
+}
 
 function findReopenMenuItem () {
   const menu = Menu.getApplicationMenu()
@@ -249,14 +263,15 @@ if (process.platform === 'darwin') {
     role: 'front'
   })
 
-  addUpdateMenuItems(template[0].submenu, 1)
+ // addUpdateMenuItems(template[0].submenu, 1)
 }
 
 if (process.platform === 'win32') {
   const helpMenu = template[template.length - 1].submenu
-  addUpdateMenuItems(helpMenu, 0)
+  // addUpdateMenuItems(helpMenu, 0)
 }
 
+// the menu is instantiated in the app here:
 app.on('ready', () => {
   const menu = Menu.buildFromTemplate(template)
   Menu.setApplicationMenu(menu)
@@ -271,6 +286,8 @@ app.on('window-all-closed', () => {
   let reopenMenuItem = findReopenMenuItem()
   if (reopenMenuItem) reopenMenuItem.enabled = true
 })
+
+/*
 function addUpdateMenuItems (items, position) {
   if (process.mas) return
 
@@ -301,3 +318,4 @@ function addUpdateMenuItems (items, position) {
 
   items.splice.apply(items, [position, 0].concat(updateItems))
 }
+*/
