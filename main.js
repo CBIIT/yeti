@@ -26,6 +26,7 @@ if (process.mas) app.setName('yedit')
 
 let mainWindow = null
 let previewWindow = null
+let errorWindow = null
 
 function initialize () {
   makeSingleInstance()
@@ -100,25 +101,27 @@ function initialize () {
     splash = new BrowserWindow(
       {show:false, height:450, width:525,
        resizable:false, movable:false, skipTaskbar:true,
-     transparent: false, frame: false, alwaysOnTop: true})
+       transparent: false, frame: false, alwaysOnTop: true,
+       webPreferences: { nodeIntegration: true }
+      })
     splash.loadURL(path.join('file://', __dirname, templates, '/splash.pug'))
-
-    app.emit('splash')
-    setTimeout( () => { app.emit('activate'); app.emit('splash-off'); }, splashTime)
-
-    app.once('setup-done', () => {
-      app.emit('open-file-dialog')
+    app.on('splash', (timeout) => {
+      splash.show()
+      ipcMain.once('splash-setup-done', () => {
+        splash.webContents.send('timeout', timeout)
+      })
     })
-    
+    app.on('splash-off', () => {
+      splash.destroy()
+      splash = null
+    })
+    let timeout = setTimeout( () => {
+      if (!splash.isDestroyed()) app.emit('open-file-dialog');
+      app.emit('splash-off'); }, splashTime)
+    app.emit('splash', timeout)
+
   })
-  app.on('splash', () => {
-    splash.show()
-  })
-  
-  app.on('splash-off', (win) => {
-    splash.destroy()
-    splash = null
-  })
+
   
   app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
@@ -170,7 +173,7 @@ function initialize () {
   app.on('open-file-dialog', (event) => {
     if (mainWindow === null) {
       app.emit('activate')
-      app.once('setup-done', () => {
+      app.once('main-setup-done', () => {
         app.emit('open-file-dialog')
       })
     }
@@ -198,12 +201,12 @@ function initialize () {
             console.error(e)
             dialog.showMessageBox(mainWindow, {
               type:"error",
-              message: `There\'s a problem: ${ename}\nDetails: `+e.prototype.message
+              message: `There\'s a problem: ${ename}\nDetails: `+e.message
             })
           }
           return
         }
-        mainWindow.webContents.send('selected-yaml', inf)
+        mainWindow.webContents.send('selected-yaml', file, inf)
       }
       else {
         console.debug("open file dialog cancelled by user")
@@ -214,7 +217,7 @@ function initialize () {
   app.on('save-file-dialog', (event) => {
     if (mainWindow === null) {
       app.emit('activate')
-      app.once('setup-done', () => {
+      app.once('main-setup-done', () => {
         app.emit('save-file-dialog')
       })
     }
@@ -315,9 +318,22 @@ function initialize () {
       .loadFile(path.join(__dirname, templates, "yaml.pug"))
     previewWindow.on('close', () => { previewWindow = null })    
   })
+
+  app.on('error-window', (event) => {
+    errorWindow = new BrowserWindow({parent:mainWindow, title:"YAML errors", webPreferences: {nodeIntegration:true}});
+    errorWindow
+      .loadFile(path.join(__dirname, templates, "errors.pug"))
+    errorWindow.on('close', () => { errorWindow = null })
+  })
   
-  ipcMain.on('setup-done', (event) => {
-    app.emit('setup-done')
+  ipcMain.on('main-setup-done', (event) => {
+    app.emit('main-setup-done')
+  })
+  ipcMain.on('preview-setup-done', (event) => {
+    app.emit('preview-setup-done')
+  })
+  ipcMain.on('splash-setup-done', (event) => {
+    app.emit('splash-setup-done')
   })
   ipcMain.on('open-success', (event) => {
     fileIsOpen = true
@@ -329,13 +345,19 @@ function initialize () {
   })
   
   ipcMain.on('yaml-string', (event, yaml) => {
-    ipcMain.once('setup-done', () => {
+    ipcMain.once('preview-setup-done', () => {
       previewWindow.webContents.send('display',yaml)
     })
     app.emit('preview-window', yaml)
-
   })
 
+  ipcMain.on('yaml-errors', (event, filename, errors) => {
+    ipcMain.once('errors-setup-done', () => {
+      errorWindow.webContents.send('display',filename,errors)
+    })
+    app.emit('error-window')
+  })
+  
   ipcMain.on('dirty', () => {
     if (process.platform == 'darwin') {
       mainWindow.setDocumentEdited(true)

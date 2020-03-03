@@ -1,9 +1,7 @@
 const {BrowserWindow, Menu, app, shell, dialog} = require('electron')
 const _=require('lodash')
 const os = require('os')
-const debug = _.find(process.argv, '--debug')
-
-console.log("HEY DUDE", _.find(process.argv, '--debug'))
+const debug = _.find('--debug',process.argv)
 
 menu_template = null
 
