@@ -36,8 +36,8 @@ application. Download and install the package for your system:
 
 | Platform | URL | SHA1 sig |
 | ------ | --- | ------- |
-| MacOS | https://bintray.com/majensen0/yeti/download_file?file_path=yeti-0.1.3.dmg |  [SHA1](./dist/yeti-0.1.3.dmg.sha1) |
-| Windows | https://bintray.com/majensen0/yeti/download_file?file_path=yeti-0.1.3-win.zip | [SHA1](./dist/yeti-0.1.3-win.zip.sha1) |
+| MacOS | https://bintray.com/majensen0/yeti/download_file?file_path=yeti-0.1.4.dmg |  [SHA1](./dist/yeti-0.1.4.dmg.sha1) |
+| Windows | https://bintray.com/majensen0/yeti/download_file?file_path=yeti-0.1.4-win.zip | [SHA1](./dist/yeti-0.1.4-win.zip.sha1) |
 
 # Bugs and Feature Requests
 
