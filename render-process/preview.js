@@ -7,5 +7,5 @@ $(function () {
       $('pre').text(yaml)
     })
   $("pre").text("what")
-  ipcRenderer.send('setup-done')
+  ipcRenderer.send('preview-setup-done')
 })

@@ -24,7 +24,7 @@ var comments_to_check = [];
 
 $(function () {
   ipcRenderer
-    .on('selected-yaml', function (event, inf) {
+    .on('selected-yaml', function (event, filename, inf) {
       try {
         ydoc = null
         ydoc = YAML.parseDocument(inf, { prettyErrors: true })
@@ -33,9 +33,14 @@ $(function () {
         console.error(e)
         return
       }
-      ipcRenderer.send('open-success')
-      d3data.render_data(ydoc)
-      yaml_doc_setup()
+      if (ydoc.errors[0]) {
+        ipcRenderer.send('yaml-errors', filename, ydoc.errors)
+      }
+      else {
+        ipcRenderer.send('open-success')
+        d3data.render_data(ydoc)
+        yaml_doc_setup()
+      }
     })
     .on('selected-save-yaml', function (event, pth) {
       fs.writeFile(pth, ydoc.toString().replace(/"true"/,'true').replace(/"false"/,'false'), {encoding:'utf8',flag:'w'}, (err) => {
@@ -101,7 +106,7 @@ $(function () {
           .fadeToggle()
       }
     })
-  ipcRenderer.send('setup-done')
+  ipcRenderer.send('main-setup-done')
 })
 
 function create_new_yaml () {

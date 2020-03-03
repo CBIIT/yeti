@@ -19,5 +19,5 @@ $(function () {
           )
       })
     })
-  ipcRenderer.send('setup-done')
+  ipcRenderer.send('errors-setup-done')
 })
