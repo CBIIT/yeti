@@ -43,7 +43,7 @@ $(function () {
       }
     })
     .on('selected-save-yaml', function (event, pth) {
-      fs.writeFile(pth, ydoc.toString().replace(/"true"/,'true').replace(/"false"/,'false'), {encoding:'utf8',flag:'w'}, (err) => {
+      fs.writeFile(pth, ydoc.toString().replace(/"true"/g,'true').replace(/"false"/g,'false'), {encoding:'utf8',flag:'w'}, (err) => {
         if (err) {
           console.error(err)
         }
