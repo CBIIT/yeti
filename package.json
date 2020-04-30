@@ -40,7 +40,7 @@
     "electron-shortcut-normalizer": "^1.0.0",
     "glob": "^7.1.6",
     "highlight.js": "^9.17.1",
-    "jquery": "^3.4.1",
+    "jquery": "^3.5.0",
     "pug": "~2.0.4",
     "update-electron-app": "^1.1.1",
     "yaml": "^1.7.2"
