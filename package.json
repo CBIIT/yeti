@@ -32,7 +32,7 @@
   },
   "dependencies": {
     "cookie-parser": "~1.4.4",
-    "d3": "^5.14.2",
+    "d3": "^7.6.1",
     "debug": "~2.6.9",
     "electron-log": "^2.2.14",
     "electron-pug": "^2.0.0",
